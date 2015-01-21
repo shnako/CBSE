@@ -2,6 +2,7 @@ package org.gla.mcom.impl;
 
 import org.gla.mcom.Registry;
 
+import java.util.Arrays;
 import java.util.HashSet;
 
 public class RegistryImpl implements Registry{
@@ -43,7 +44,7 @@ public class RegistryImpl implements Registry{
 
 	@Override
 	public String[] lookup() {
-		return (String[])ip_ports.toArray();
+		return Arrays.asList(ip_ports).toArray(new String[ip_ports.size()]);
 	}
 
 	@Override
