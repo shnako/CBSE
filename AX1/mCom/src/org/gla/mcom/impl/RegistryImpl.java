@@ -13,12 +13,32 @@ public class RegistryImpl implements Registry{
 
 	}
 
-	public static RegistryImpl getRegistry() {
+	public static Registry getRegistryInstance() {
+		return registrySingleton;
+	}
+
+	public static boolean startRegistrar() {
 		if (registrySingleton != null) {
-			return registrySingleton;
+			return false;
 		}
 
-		return new RegistryImpl();
+		registrySingleton = new RegistryImpl();
+
+		return true;
+	}
+
+	public static boolean stopRegistrar() {
+		if (registrySingleton == null) {
+			return false;
+		}
+
+		registrySingleton = null;
+
+		return true;
+	}
+
+	public static boolean isRegistrar() {
+		return registrySingleton != null;
 	}
 
 	@Override

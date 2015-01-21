@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Scanner;
 
 import org.gla.mcom.impl.ReceiverImpl;
+import org.gla.mcom.impl.RegistryImpl;
 import org.gla.mcom.impl.SenderImpl;
 import org.gla.mcom.init.Initialiser;
 
@@ -45,6 +46,11 @@ public class Display {
 		commands.put("<m>", "send message <m> to recipient");
 		commands.put("c% <c>", "check if host with name <c> exist");
 		commands.put("end", "terminate");
+		commands.put("start", "start acting as a registrar");
+		commands.put("stop", "stop acting as a registrar");
+		commands.put("reg", "register the host with this registrar");
+		commands.put("dereg", "deregister the host with this registrar");
+		commands.put("lookup", "retrieve a list of all the hosts registered with this registrar");
 	}
 	
 	@SuppressWarnings("resource")
@@ -103,6 +109,22 @@ public class Display {
 						System.out.println(ansi_normal2.colorize("check failed"));
 					}
 				}
+			}
+		}
+		// startRegistrar
+		else if (command.equals("start")) {
+			if (RegistryImpl.startRegistrar()) {
+				System.out.println("Registrar service started!");
+			} else {
+				System.out.println("Could not start registrar service! Is it already started?");
+			}
+		}
+		// stopRegistrar
+		else if (command.equals("stop")) {
+			if (RegistryImpl.stopRegistrar()) {
+				System.out.println("Registrar service stopped!");
+			} else {
+				System.out.println("Could not stop registrar service! Is it already stopped?");
 			}
 		}
 		else if(command.equals("end")){

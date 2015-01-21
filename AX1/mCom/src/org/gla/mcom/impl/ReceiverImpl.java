@@ -6,8 +6,10 @@ package org.gla.mcom.impl;
 
 import java.net.*;
 import java.io.*;
+import java.util.Arrays;
 
 import org.gla.mcom.Receiver;
+import org.gla.mcom.Registry;
 import org.gla.mcom.util.Display;
 import org.gla.mcom.util.IPResolver;
 
@@ -26,7 +28,8 @@ public class ReceiverImpl implements Receiver{
 
 			while(true) {
 				try {
-					Socket clientSocket = listenSocket.accept();	
+					Socket clientSocket = listenSocket.accept();
+					String clientSocketString = clientSocket.getInetAddress() + ":" + clientSocket.getPort();
 					if(clientSocket !=null){
 						DataInputStream in= new DataInputStream(clientSocket.getInputStream());
 						DataOutputStream out =new DataOutputStream(clientSocket.getOutputStream());
@@ -48,12 +51,47 @@ public class ReceiverImpl implements Receiver{
 							}
 						}
 						else if(r_message.equals("disconnect")){
-							System.out.println(Display.ansi_normal2.colorize("disconnecting "+clientSocket.getInetAddress()+":"+clientSocket.getPort()));
-							send(""+clientSocket.getInetAddress()+":"+clientSocket.getPort()+" disconnected", out);
+							System.out.println(Display.ansi_normal2.colorize("disconnecting "+clientSocketString));
+							send(""+clientSocketString+" disconnected", out);
 							closeConnection(clientSocket);
 						}
+						// register implementation
+						else if(r_message.equals("reg")){
+							Registry registry = RegistryImpl.getRegistryInstance();
+							if (registry == null) {
+								send("This is not a registrar!", out);
+							} else {
+								if (registry.register(clientSocketString)) {
+									send(clientSocketString + " has been registered", out);
+								} else {
+									send(clientSocketString + " could not be registered, it is probably registered already", out);
+								}
+							}
+						}
+						// deregister implementation
+						else if(r_message.equals("dereg")){
+							Registry registry = RegistryImpl.getRegistryInstance();
+							if (registry == null) {
+								send("This is not a registrar!", out);
+							} else {
+								if (registry.deregister(clientSocketString)) {
+									send(clientSocketString + " has been deregistered", out);
+								} else {
+									send(clientSocketString + " could not be deregistered, it is probably not registered yet", out);
+								}
+							}
+						}
+						// lookup implementation
+						else if(r_message.equals("lookup")){
+							Registry registry = RegistryImpl.getRegistryInstance();
+							if (registry == null) {
+								send("This is not a registrar!", out);
+							} else {
+								send(Arrays.toString(registry.lookup()), out);
+							}
+						}
 						else{
-							System.out.println(Display.ansi_normal.colorize("["+clientSocket.getInetAddress()+":"+clientSocket.getPort()+"]"+r_message));
+							System.out.println(Display.ansi_normal.colorize("["+clientSocketString+"]"+r_message));
 							closeConnection(clientSocket);
 						}	
 					}
