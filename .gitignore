@@ -1,10 +1,19 @@
 *.class
+/bin/
+
+# Eclipse and IntelliJ specifics
+.classpath
+.settings/
+.project
+.idea/
+*.iml
+
 
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
 
 # Package Files #
-*.jar
+# We need these for libs and outpus *.jar
 *.war
 *.ear
 
