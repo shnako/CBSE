@@ -67,6 +67,7 @@ public class ReceiverImpl implements Receiver{
 									send(clientSocketString + " could not be registered, it is probably registered already", out);
 								}
 							}
+							closeConnection(clientSocket);
 						}
 						// deregister implementation
 						else if(r_message.equals("dereg")){
@@ -80,6 +81,7 @@ public class ReceiverImpl implements Receiver{
 									send(clientSocketString + " could not be deregistered, it is probably not registered yet", out);
 								}
 							}
+							closeConnection(clientSocket);
 						}
 						// lookup implementation
 						else if(r_message.equals("lookup")){
@@ -94,6 +96,7 @@ public class ReceiverImpl implements Receiver{
 								}
 								send(result, out);
 							}
+							closeConnection(clientSocket);
 						}
 						else{
 							System.out.println(Display.ansi_normal.colorize("["+clientSocketString+"]"+r_message));
