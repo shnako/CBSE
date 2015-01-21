@@ -44,7 +44,14 @@ public class RegistryImpl implements Registry{
 
 	@Override
 	public String[] lookup() {
-		return Arrays.asList(ip_ports).toArray(new String[ip_ports.size()]);
+		String[] result = new String[ip_ports.size()];
+		
+		int i = 0;
+		for (String ip_port : ip_ports) {
+			result[i++] = ip_port;
+		}
+		
+		return result;
 	}
 
 	@Override
