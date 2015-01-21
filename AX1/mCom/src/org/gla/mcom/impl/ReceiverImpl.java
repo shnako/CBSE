@@ -10,6 +10,7 @@ import java.util.Arrays;
 
 import org.gla.mcom.Receiver;
 import org.gla.mcom.Registry;
+import org.gla.mcom.init.Initialiser;
 import org.gla.mcom.util.Display;
 import org.gla.mcom.util.IPResolver;
 
@@ -28,6 +29,7 @@ public class ReceiverImpl implements Receiver{
 
 			while(true) {
 				try {
+					
 					Socket clientSocket = listenSocket.accept();
 					String clientSocketString = clientSocket.getInetAddress() + ":" + clientSocket.getPort();
 					if(clientSocket !=null){
@@ -57,12 +59,14 @@ public class ReceiverImpl implements Receiver{
 						}
 						// register implementation
 						else if(r_message.equals("reg")){
+							
 							Registry registry = RegistryImpl.getRegistryInstance();
 							if (registry == null) {
 								send("This is not a registrar!", out);
 							} else {
-								if (registry.register(clientSocketString)) {
-									send(clientSocketString + " has been registered", out);
+								if (registry.register(clientSocket.getInetAddress() + ":" + Initialiser.receiver_listening_port)) {
+									//send(clientSocketString + " has been registered", out);
+									System.out.println(clientSocket.getInetAddress() + ":" + Initialiser.receiver_listening_port+" has been registered");
 								} else {
 									send(clientSocketString + " could not be registered, it is probably registered already", out);
 								}
@@ -94,7 +98,8 @@ public class ReceiverImpl implements Receiver{
 								for(String ip_port: registry.lookup()) {
 									result += ip_port + "\r\n";
 								}
-								send(result, out);
+								//send(result, out);
+								System.out.println(result);
 							}
 							closeConnection(clientSocket);
 						}
@@ -114,7 +119,7 @@ public class ReceiverImpl implements Receiver{
 			}
 		}
 		
-		private boolean acceptPing(Socket clientSocket){		
+		private boolean acceptPing(Socket clientSocket){ //broadcasting own address		
 			System.out.println(Display.ansi_normal2.colorize("now connected to "+clientSocket.getInetAddress()+":"+clientSocket.getPort()));
 			boolean accepted = true;
 			

@@ -85,8 +85,8 @@ public class Display {
 					}
 					else{
 						if(isNumeric(value)){
+							//person we are talking to's listening port - where we are sending it
 							Initialiser.receiver_listening_port = new Integer(value).intValue();
-							//Initialiser.receiver_listening_port = Integer.parseInt(value);
 							sender = new SenderImpl();
 							boolean connected = sender.makeConnection();							
 							if(!connected){
