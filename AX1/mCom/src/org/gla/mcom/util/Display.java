@@ -127,6 +127,11 @@ public class Display {
 				System.out.println("Could not stop registrar service! Is it already stopped?");
 			}
 		}
+		else if (command.equals("reg") || command.equals("dereg")) {
+			command += "%" + Initialiser.local_address.getHostAddress() + ":" + ReceiverImpl.listenSocket.getLocalPort();
+
+			sender.sendMessage(command);	
+		}
 		else if(command.equals("end")){
 			System.exit(0);
 		}

@@ -6,6 +6,7 @@
 .settings/
 .project
 .idea/
+.metadata/
 *.iml
 
 
@@ -13,7 +14,7 @@
 .mtj.tmp/
 
 # Package Files #
-# We need these for libs and outpus *.jar
+*.jar
 *.war
 *.ear
 

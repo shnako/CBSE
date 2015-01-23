@@ -55,8 +55,15 @@ public class SenderImpl implements Sender{
 			
 			try {
 				Socket serverSocket = new Socket(Initialiser.receiver_ip,Initialiser.receiver_listening_port);
+				DataInputStream in = new DataInputStream(serverSocket.getInputStream());
 				DataOutputStream out = new DataOutputStream(serverSocket.getOutputStream());
 				out.writeUTF(message); // UTF is a string encoding;
+				try {
+					System.out.println("Response:\r\n" + in.readUTF());
+				} catch (EOFException e) {
+					// Suppress.
+				}
+				
 				serverSocket.close();
 			} 
 			catch (UnknownHostException e) {

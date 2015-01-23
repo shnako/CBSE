@@ -57,36 +57,6 @@ public class ReceiverImpl implements Receiver{
 							send(""+clientSocketString+" disconnected", out);
 							closeConnection(clientSocket);
 						}
-						// register implementation
-						else if(r_message.equals("reg")){
-							
-							Registry registry = RegistryImpl.getRegistryInstance();
-							if (registry == null) {
-								send("This is not a registrar!", out);
-							} else {
-								if (registry.register(clientSocket.getInetAddress() + ":" + Initialiser.receiver_listening_port)) {
-									//send(clientSocketString + " has been registered", out);
-									System.out.println(clientSocket.getInetAddress() + ":" + Initialiser.receiver_listening_port+" has been registered");
-								} else {
-									send(clientSocketString + " could not be registered, it is probably registered already", out);
-								}
-							}
-							closeConnection(clientSocket);
-						}
-						// deregister implementation
-						else if(r_message.equals("dereg")){
-							Registry registry = RegistryImpl.getRegistryInstance();
-							if (registry == null) {
-								send("This is not a registrar!", out);
-							} else {
-								if (registry.deregister(clientSocketString)) {
-									send(clientSocketString + " has been deregistered", out);
-								} else {
-									send(clientSocketString + " could not be deregistered, it is probably not registered yet", out);
-								}
-							}
-							closeConnection(clientSocket);
-						}
 						// lookup implementation
 						else if(r_message.equals("lookup")){
 							Registry registry = RegistryImpl.getRegistryInstance();
@@ -98,10 +68,60 @@ public class ReceiverImpl implements Receiver{
 								for(String ip_port: registry.lookup()) {
 									result += ip_port + "\r\n";
 								}
-								//send(result, out);
+								
+								send(result, out);
 								System.out.println(result);
 							}
 							closeConnection(clientSocket);
+						}
+						else if(r_message.contains("%")){
+							String[] c = r_message.split("%");
+							if(c.length <2){
+						    	System.out.println("ERROR:Invalid format");
+							} else {
+								String operation = c[0];
+								String value = c[1];
+								
+								// register implementation
+								if(operation.equals("reg")){
+									String message;
+									Registry registry = RegistryImpl.getRegistryInstance();
+									if (registry == null) {
+										message = "This is not a registrar!";
+									} else {
+										if (registry.register(value)) {
+											message = value + " has been registered";
+										} else {
+											message = value + " could not be registered, it is probably registered already";
+										}
+										
+									}
+									
+									send(message, out);
+									System.out.println(message);
+									
+									closeConnection(clientSocket);
+								}
+								// deregister implementation
+								else if(operation.equals("dereg")){
+									String message;
+									Registry registry = RegistryImpl.getRegistryInstance();
+									if (registry == null) {
+										message = "This is not a registrar!";
+									} else {
+										if (registry.deregister(value)) {
+											message = value + " has been deregistered";
+										} else {
+											message = value + " could not be deregistered, it is probably not registered yet";
+										}
+									}
+									
+									send(message, out);
+									System.out.println(message);
+									
+									closeConnection(clientSocket);
+								}
+							}
 						}
 						else{
 							System.out.println(Display.ansi_normal.colorize("["+clientSocketString+"]"+r_message));
