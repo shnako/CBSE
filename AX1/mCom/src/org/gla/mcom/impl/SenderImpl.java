@@ -7,6 +7,7 @@ package org.gla.mcom.impl;
 import java.net.*;
 import java.io.*;
 
+import com.sun.org.apache.xml.internal.security.Init;
 import org.gla.mcom.Sender;
 import org.gla.mcom.init.Initialiser;
 import org.gla.mcom.util.Display;
@@ -79,5 +80,37 @@ public class SenderImpl implements Sender{
 		else{
 			System.out.println(Display.ansi_error.colorize("ERROR:No message recipient"));
 		}		
-	}		
+	}
+
+	public void broadcastMessage(String message, String[] clients) {
+		// Store the previous connection's details.
+		String old_ip = Initialiser.receiver_ip;
+		int old_port = Initialiser.receiver_listening_port;
+
+		for (String client : clients) {
+			int separatorIndex = client.lastIndexOf(":");
+
+			Initialiser.receiver_ip = client.substring(0, separatorIndex);
+			Initialiser.receiver_listening_port = Integer.parseInt(client.substring(separatorIndex + 1));
+			makeConnection();
+
+			sendMessage(message);
+
+
+			/*
+
+			try {
+				Socket serverSocket = new Socket(ip, port);
+				DataOutputStream out = new DataOutputStream(serverSocket.getOutputStream());
+				out.writeUTF(message); // UTF is a string encoding;
+			}
+*/
+
+		}
+
+		// Reconnect to the previous connection.
+		Initialiser.receiver_ip = old_ip;
+		Initialiser.receiver_listening_port = old_port;
+		makeConnection();
+	}
 }

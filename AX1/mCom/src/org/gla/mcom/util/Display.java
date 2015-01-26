@@ -9,6 +9,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Scanner;
 
+import org.gla.mcom.Registry;
 import org.gla.mcom.impl.ReceiverImpl;
 import org.gla.mcom.impl.RegistryImpl;
 import org.gla.mcom.impl.SenderImpl;
@@ -121,7 +122,10 @@ public class Display {
 		}
 		// stopRegistrar
 		else if (command.equals("stop")) {
+			Registry registry = RegistryImpl.getRegistryInstance();
+			String[] clients = registry.lookup();
 			if (RegistryImpl.stopRegistrar()) {
+				sender.broadcastMessage(Initialiser.local_address.getHostAddress() + " is no longer a registrar.", clients);
 				System.out.println("Registrar service stopped!");
 			} else {
 				System.out.println("Could not stop registrar service! Is it already stopped?");
