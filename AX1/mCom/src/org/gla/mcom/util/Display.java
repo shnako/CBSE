@@ -116,11 +116,12 @@ public class Display {
 		}
 		// startRegistrar
 		else if (command.equals("start")) {
-			Registry registry = RegistryImpl.getRegistryInstance();
-			String[] clients = registry.lookup();
-			
-			sender = new SenderImpl();
 			if (RegistryImpl.startRegistrar()) {
+
+				Registry registry = RegistryImpl.getRegistryInstance();
+				String[] clients = registry.lookup();
+				
+				sender = new SenderImpl();
 				System.out.println("Registrar service started!");
 				sender.broadcastMessage(Initialiser.local_address.getHostAddress() + "addRegistrar", clients);
 			} else {
