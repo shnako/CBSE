@@ -6,18 +6,20 @@ package org.gla.mcom.impl;
 
 import java.net.*;
 import java.io.*;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.gla.mcom.Receiver;
 import org.gla.mcom.Registry;
+import org.gla.mcom.Sender;
 import org.gla.mcom.init.Initialiser;
 import org.gla.mcom.util.Display;
 import org.gla.mcom.util.IPResolver;
 
 public class ReceiverImpl implements Receiver{
 	public static ServerSocket listenSocket;
+	public static Map<String, Boolean> registrars = new HashMap<String, Boolean>();
+	private SenderImpl sender;
 	
 	public void receiveMessage() { 		
 		Thread server_thread = new Thread(new ReceiverImpl().new ReceiverRunner());
@@ -26,11 +28,11 @@ public class ReceiverImpl implements Receiver{
 	
 	class ReceiverRunner implements Runnable {
 			
-		private Map<String, Boolean> registrars = new HashMap<String, Boolean>();
+		
 
 		public void run() {
 			listenSocket = IPResolver.configureHostListeningSocket(); 	
-
+			
 			while(true) {
 				try {
 					
@@ -92,11 +94,16 @@ public class ReceiverImpl implements Receiver{
 								if(operation.equals("reg")){
 									String message;
 									Registry registry = RegistryImpl.getRegistryInstance();
+																		
 									if (registry == null) {
 										message = "This is not a registrar!";
 									} else {
 										if (registry.register(value)) {
 											message = value + " has been registered";
+											registrars.put(clientSocketString, false);
+											sender = new SenderImpl();
+											sender.broadcastMessage(clientSocketString + "update registrars:" + Display.mapToString(), Display.convertRegistrars());
+
 										} else {
 											message = value + " could not be registered, it is probably registered already";
 										}
@@ -112,11 +119,15 @@ public class ReceiverImpl implements Receiver{
 								else if(operation.equals("dereg")){
 									String message;
 									Registry registry = RegistryImpl.getRegistryInstance();
+									
 									if (registry == null) {
 										message = "This is not a registrar!";
 									} else {
 										if (registry.deregister(value)) {
 											message = value + " has been deregistered";
+											registrars.remove(clientSocketString);
+											sender = new SenderImpl();
+											sender.broadcastMessage(clientSocketString + "update registrars:" + Display.mapToString(), Display.convertRegistrars());
 										} else {
 											message = value + " could not be deregistered, it is probably not registered yet";
 										}
@@ -177,23 +188,16 @@ public class ReceiverImpl implements Receiver{
 		}
 		
 		private void parseRegistrars(String message){
-			String host;
+			String map = message.substring(message.lastIndexOf("update registrars:") + 1);
+			registrars.clear();
 			
-			if (message.contains("addRegistrar")){
-				host = message.substring(0, message.indexOf("add"));
-				registrars.put(host, true);
-			}
-			else if (message.contains("addclient")){
-				host = message.substring(0, message.indexOf("add"));
-				registrars.put(host, false);
-			}
-			else if (message.contains("removed")){
-				host = message.substring(0, message.indexOf("removed"));
-				registrars.remove(host);
+			String[] elements = map.split("&");
+			for (int i = 0; i < elements.length; i += 2) {
+				registrars.put(elements[i], Boolean.parseBoolean(elements[i+1]));
 			}
 			
 		}
-		
+
 		
 	}
 

@@ -3,11 +3,17 @@
  */
 package org.gla.mcom.util;
 
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.net.InetAddress;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Scanner;
 
 import org.gla.mcom.Registry;
@@ -15,6 +21,8 @@ import org.gla.mcom.impl.ReceiverImpl;
 import org.gla.mcom.impl.RegistryImpl;
 import org.gla.mcom.impl.SenderImpl;
 import org.gla.mcom.init.Initialiser;
+
+import com.sun.xml.internal.bind.v2.schemagen.xmlschema.List;
 
 import jlibs.core.lang.Ansi;
 
@@ -118,24 +126,22 @@ public class Display {
 		else if (command.equals("start")) {
 			if (RegistryImpl.startRegistrar()) {
 
-				Registry registry = RegistryImpl.getRegistryInstance();
-				String[] clients = registry.lookup();
+				ReceiverImpl.registrars.put(Initialiser.local_address.getHostAddress() + ":" + ReceiverImpl.listenSocket.getLocalPort(), true);
 				
 				sender = new SenderImpl();
 				System.out.println("Registrar service started!");
-				sender.broadcastMessage(Initialiser.local_address.getHostAddress() + "addRegistrar", clients);
+				sender.broadcastMessage(Initialiser.local_address.getHostAddress() + "update registrars:" + mapToString(), convertRegistrars());
 			} else {
 				System.out.println("Could not start registrar service! Is it already started?");
 			}
 		}
 		// stopRegistrar
 		else if (command.equals("stop")) {
-			Registry registry = RegistryImpl.getRegistryInstance();
-			String[] clients = registry.lookup();
+			ReceiverImpl.registrars.remove(Initialiser.local_address.getHostAddress() + ":" + ReceiverImpl.listenSocket.getLocalPort());
 
 			sender = new SenderImpl();
 			if (RegistryImpl.stopRegistrar()) {
-				sender.broadcastMessage(Initialiser.local_address.getHostAddress() + "removed", clients);
+				sender.broadcastMessage(Initialiser.local_address.getHostAddress() + "update registrars:" + mapToString(), convertRegistrars());
 				System.out.println("Registrar service stopped!");
 			} else {
 				System.out.println("Could not stop registrar service! Is it already stopped?");
@@ -143,13 +149,8 @@ public class Display {
 		}
 		else if (command.equals("reg") || command.equals("dereg")) {
 			command += "~" + Initialiser.local_address.getHostAddress() + ":" + ReceiverImpl.listenSocket.getLocalPort();
-			
-			Registry registry = RegistryImpl.getRegistryInstance();
-			String[] clients = registry.lookup();
-			sender = new SenderImpl();
-			
+
 			sender.sendMessage(command, true);
-			sender.broadcastMessage(Initialiser.local_address.getHostAddress() + "addRegistrar", clients);
 		}
 		else if(command.equals("end")){
 			System.exit(0);
@@ -177,6 +178,28 @@ public class Display {
 			return false;
 		}
 		return true;
+	}
+	
+	
+	public static String[] convertRegistrars(){
+		String[] registrars = new String[ReceiverImpl.registrars.size()];
+		int i = 0;
+		for (String host : ReceiverImpl.registrars.keySet()){
+			registrars[i] = host;
+			i++;
+		}
+		
+		return registrars;
+	}
+	
+	public static String mapToString(){
+		String result = "";
+		
+		for (Entry element : ReceiverImpl.registrars.entrySet()){
+			result += element.getKey() + "&" + element.getValue() + "&";
+		}
+		
+		return result.substring(0, result.length() - 1);
 	}
 	
 }
