@@ -26,7 +26,7 @@ public class SenderImpl implements Sender{
 			out.writeUTF(i_message); // UTF is a string encoding;
 			
 			String r_message = in.readUTF();
-			if(i_message != null){
+			if(r_message != null){
 				if(r_message.equals("rejected")){
 					accepted = false;
 				}

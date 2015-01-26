@@ -69,13 +69,14 @@ public class Display {
 			printCommands();
 		}
 		else if(command.contains("%")){
-			String[] c = command.split("%");
-			if(c.length <2){
+			int delimiterIndex = command.indexOf("%");
+
+			if(delimiterIndex == command.length() - 1){
 		    	System.out.println(ansi_error.colorize("ERROR:Invalid format"));
 			}
 			else{
-				String operation = c[0];
-				String value = c[1];
+				String operation = command.substring(0, delimiterIndex);
+				String value = command.substring(delimiterIndex + 1);
 				
 				if(operation.equals("ipr")){
 					Initialiser.receiver_ip = value;
@@ -124,6 +125,8 @@ public class Display {
 		else if (command.equals("stop")) {
 			Registry registry = RegistryImpl.getRegistryInstance();
 			String[] clients = registry.lookup();
+
+			sender = new SenderImpl();
 			if (RegistryImpl.stopRegistrar()) {
 				sender.broadcastMessage(Initialiser.local_address.getHostAddress() + " is no longer a registrar.", clients);
 				System.out.println("Registrar service stopped!");

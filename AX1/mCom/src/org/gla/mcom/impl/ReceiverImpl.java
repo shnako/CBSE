@@ -75,12 +75,14 @@ public class ReceiverImpl implements Receiver{
 							closeConnection(clientSocket);
 						}
 						else if(r_message.contains("%")){
-							String[] c = r_message.split("%");
-							if(c.length <2){
-						    	System.out.println("ERROR:Invalid format");
-							} else {
-								String operation = c[0];
-								String value = c[1];
+							int delimiterIndex = r_message.indexOf("%");
+
+							if(delimiterIndex == r_message.length() - 1){
+								System.out.println("ERROR:Invalid format");
+							}
+							else{
+								String operation = r_message.substring(0, delimiterIndex);
+								String value = r_message.substring(delimiterIndex + 1);
 								
 								// register implementation
 								if(operation.equals("reg")){
