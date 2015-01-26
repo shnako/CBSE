@@ -7,6 +7,8 @@ package org.gla.mcom.impl;
 import java.net.*;
 import java.io.*;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.gla.mcom.Receiver;
 import org.gla.mcom.Registry;
@@ -24,6 +26,8 @@ public class ReceiverImpl implements Receiver{
 	
 	class ReceiverRunner implements Runnable {
 			
+		private Map<String, Boolean> registrars = new HashMap<String, Boolean>();
+
 		public void run() {
 			listenSocket = IPResolver.configureHostListeningSocket(); 	
 
@@ -126,6 +130,7 @@ public class ReceiverImpl implements Receiver{
 							}
 						}
 						else{
+							parseRegistrars(r_message);
 							System.out.println(Display.ansi_normal.colorize("["+clientSocketString+"]"+r_message));
 							closeConnection(clientSocket);
 						}	
@@ -170,6 +175,26 @@ public class ReceiverImpl implements Receiver{
 				}
 			}
 		}
+		
+		private void parseRegistrars(String message){
+			String host;
+			
+			if (message.contains("addRegistrar")){
+				host = message.substring(0, message.indexOf("add"));
+				registrars.put(host, true);
+			}
+			else if (message.contains("addclient")){
+				host = message.substring(0, message.indexOf("add"));
+				registrars.put(host, false);
+			}
+			else if (message.contains("removed")){
+				host = message.substring(0, message.indexOf("removed"));
+				registrars.remove(host);
+			}
+			
+		}
+		
+		
 	}
 
 }
