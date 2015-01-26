@@ -42,10 +42,10 @@ public class Display {
 	}
 	
 	private static void initCommands(){//
-		commands.put("ipr% <ipr>", "set ip address<hip> of message recipient");
-		commands.put("p% <p>", "set listening port<p> of message recipient");
+		commands.put("ipr~ <ipr>", "set ip address<hip> of message recipient");
+		commands.put("p~ <p>", "set listening port<p> of message recipient");
 		commands.put("<m>", "send message <m> to recipient");
-		commands.put("c% <c>", "check if host with name <c> exist");
+		commands.put("c~ <c>", "check if host with name <c> exist");
 		commands.put("end", "terminate");
 		commands.put("start", "start acting as a registrar");
 		commands.put("stop", "stop acting as a registrar");
@@ -68,8 +68,8 @@ public class Display {
 		if(command.equals("?")){
 			printCommands();
 		}
-		else if(command.contains("%")){
-			int delimiterIndex = command.indexOf("%");
+		else if(command.contains("~")){
+			int delimiterIndex = command.indexOf("~");
 
 			if(delimiterIndex == command.length() - 1){
 		    	System.out.println(ansi_error.colorize("ERROR:Invalid format"));
@@ -135,15 +135,15 @@ public class Display {
 			}
 		}
 		else if (command.equals("reg") || command.equals("dereg")) {
-			command += "%" + Initialiser.local_address.getHostAddress() + ":" + ReceiverImpl.listenSocket.getLocalPort();
+			command += "~" + Initialiser.local_address.getHostAddress() + ":" + ReceiverImpl.listenSocket.getLocalPort();
 
-			sender.sendMessage(command);	
+			sender.sendMessage(command, true);
 		}
 		else if(command.equals("end")){
 			System.exit(0);
 		}
 		else if(command.length() > 0){
-			sender.sendMessage(command);			
+			sender.sendMessage(command, true);
 		}
 		console();
 	}

@@ -74,8 +74,8 @@ public class ReceiverImpl implements Receiver{
 							}
 							closeConnection(clientSocket);
 						}
-						else if(r_message.contains("%")){
-							int delimiterIndex = r_message.indexOf("%");
+						else if(r_message.contains("~")){
+							int delimiterIndex = r_message.indexOf("~");
 
 							if(delimiterIndex == r_message.length() - 1){
 								System.out.println("ERROR:Invalid format");

@@ -51,35 +51,36 @@ public class SenderImpl implements Sender{
 		return accepted;
 	}
 	
-	public void sendMessage(String message) {
+	public void sendMessage(String message, boolean expectResponse) {
 		if(accepted){
-			
+
 			try {
 				Socket serverSocket = new Socket(Initialiser.receiver_ip,Initialiser.receiver_listening_port);
-				DataInputStream in = new DataInputStream(serverSocket.getInputStream());
 				DataOutputStream out = new DataOutputStream(serverSocket.getOutputStream());
+				DataInputStream in = new DataInputStream(serverSocket.getInputStream());
 				out.writeUTF(message); // UTF is a string encoding;
-				try {
-					System.out.println("Response:\r\n" + in.readUTF());
-				} catch (EOFException e) {
-					// Suppress.
+				if (expectResponse) {
+					try {
+						System.out.println("Response:\r\n" + in.readUTF());
+					} catch (EOFException e) {
+						// Suppress.
+					}
 				}
-				
 				serverSocket.close();
-			} 
+			}
 			catch (UnknownHostException e) {
 				System.out.println("Sock:" + e.getMessage());
-			} 
+			}
 			catch (EOFException e) {
 				System.out.println("EOF:" + e.getMessage());
-			} 
+			}
 			catch (IOException e) {
 				System.out.println("IO:" + e.getMessage());
-			}			
+			}
 		}
 		else{
 			System.out.println(Display.ansi_error.colorize("ERROR:No message recipient"));
-		}		
+		}
 	}
 
 	public void broadcastMessage(String message, String[] clients) {
@@ -94,7 +95,7 @@ public class SenderImpl implements Sender{
 			Initialiser.receiver_listening_port = Integer.parseInt(client.substring(separatorIndex + 1));
 			makeConnection();
 
-			sendMessage(message);
+			sendMessage(message, false);
 
 
 			/*
@@ -108,9 +109,11 @@ public class SenderImpl implements Sender{
 
 		}
 
-		// Reconnect to the previous connection.
-		Initialiser.receiver_ip = old_ip;
-		Initialiser.receiver_listening_port = old_port;
-		makeConnection();
+		// Reconnect to the previous connection if one was made.
+		if (old_port > -1) {
+			Initialiser.receiver_ip = old_ip;
+			Initialiser.receiver_listening_port = old_port;
+			makeConnection();
+		}
 	}
 }
