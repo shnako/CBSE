@@ -16,7 +16,6 @@ import java.util.Map.Entry;
 import java.util.Scanner;
 
 public class Display {
-
     public static final Ansi ansi_help = new Ansi(Ansi.Attribute.NORMAL, Ansi.Color.RED, null);
     public static final Ansi ansi_error = new Ansi(Ansi.Attribute.NORMAL, Ansi.Color.RED, null);
     public static final Ansi ansi_normal = new Ansi(Ansi.Attribute.NORMAL, Ansi.Color.RED, null);
@@ -57,10 +56,8 @@ public class Display {
     @SuppressWarnings("resource")
     private static void console() {
         System.out.println(ansi_console.colorize("\ncom(" + Initialiser.local_address.getHostAddress() + ")>>"));
-
         Scanner scanner = new Scanner(System.in);
         String command = scanner.nextLine();
-
         execute(command);
     }
 
@@ -69,13 +66,11 @@ public class Display {
             printCommands();
         } else if (command.contains(Parameters.COMMAND_SEPARATOR)) {
             int delimiterIndex = command.indexOf(Parameters.COMMAND_SEPARATOR);
-
             if (delimiterIndex == command.length() - 1) {
                 System.out.println(ansi_error.colorize("ERROR:Invalid format"));
             } else {
                 String operation = command.substring(0, delimiterIndex);
                 String value = command.substring(delimiterIndex + 1);
-
                 if (operation.equals("ipr")) {
                     Initialiser.receiver_ip = value;
                 } else if (operation.equals("p")) {
@@ -119,20 +114,20 @@ public class Display {
         // startRegistrar
         else if (command.equals("start")) {
             if (RegistryImpl.startRegistrar()) {
-
                 Registrars.addRegistrar(Initialiser.local_address.getHostAddress() + ":" + ReceiverImpl.listenSocket.getLocalPort());
-
                 sender = new SenderImpl();
                 System.out.println("Registrar service started!");
                 sender.broadcastMessage("update_registrars" + Parameters.COMMAND_SEPARATOR + Registrars.getStringRepresentation(), getAllInstance());
             } else {
                 System.out.println("Could not start registrar service! Is it already started?");
             }
+        } else if (command.equals("getreg")) {
+            Registrars.initializeRegistrars(sender.sendMessage("getreg", true).split(Parameters.ITEM_SEPARATOR));
+            System.out.println("Got registrars:\r\n" + Registrars.getStringRepresentation());
         }
         // stopRegistrar
         else if (command.equals("stop")) {
             Registrars.removeRegistrar(Initialiser.local_address.getHostAddress() + ":" + ReceiverImpl.listenSocket.getLocalPort());
-
             sender = new SenderImpl();
             if (RegistryImpl.stopRegistrar()) {
                 sender.broadcastMessage("update registrars:" + Registrars.getStringRepresentation(), getAllInstance());
@@ -142,14 +137,11 @@ public class Display {
             }
         } else if (command.equals("reg") || command.equals("dereg")) {
             command += Parameters.COMMAND_SEPARATOR + Initialiser.local_address.getHostAddress() + ":" + ReceiverImpl.listenSocket.getLocalPort();
-
             sender.sendMessage(command, true);
         } else if (command.equals("end")) {
             System.exit(0);
-
         } else if (command.equals("all")) {
             String result = "";
-
             for (String ip_port : getAllInstance()) {
                 result += ip_port + Parameters.ITEM_SEPARATOR;
             }
@@ -157,7 +149,6 @@ public class Display {
         } else if (command.length() > 0) {
             sender.sendMessage(command, true);
         }
-
         console();
     }
 
@@ -189,7 +180,6 @@ public class Display {
                 hosts.addAll(Helpers.arrayToArrayList(response.split(Parameters.ITEM_SEPARATOR)));
             }
         }
-
         return Helpers.setToStringArray(hosts);
     }
 }
