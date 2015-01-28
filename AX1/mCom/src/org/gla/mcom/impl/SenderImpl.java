@@ -48,33 +48,47 @@ public class SenderImpl implements Sender {
     }
 
     public String sendMessage(String message, boolean expectResponse) {
-        if (accepted) {
+        return sendMessage(message, expectResponse, Initialiser.receiver_ip, Initialiser.receiver_listening_port);
+    }
 
-            try {
-                Socket serverSocket = new Socket(Initialiser.receiver_ip, Initialiser.receiver_listening_port);
-                DataOutputStream out = new DataOutputStream(serverSocket.getOutputStream());
-                DataInputStream in = new DataInputStream(serverSocket.getInputStream());
-                out.writeUTF(message); // UTF is a string encoding;
-                if (expectResponse) {
-                    try {
-                        String response = in.readUTF();
-                        System.out.println("Response:\r\n" + response);
-                        return response;
+    public String sendMessage(String message, boolean expectResponse, String ip_port) {
+        int separatorIndex = ip_port.lastIndexOf(":");
 
-                    } catch (EOFException e) {
-                        // Suppress.
+        String ip = ip_port.substring(0, separatorIndex);
+        int port = Integer.parseInt(ip_port.substring(separatorIndex + 1));
+
+        return sendMessage(message, expectResponse, ip, port);
+    }
+
+    public String sendMessage(String message, boolean expectResponse, String ip, int port) {
+        if (!ip.equals(Initialiser.local_address)) {
+            if (accepted) {
+                try {
+                    Socket serverSocket = new Socket(ip, port);
+                    DataOutputStream out = new DataOutputStream(serverSocket.getOutputStream());
+                    DataInputStream in = new DataInputStream(serverSocket.getInputStream());
+                    out.writeUTF(message); // UTF is a string encoding;
+                    if (expectResponse) {
+                        try {
+                            String response = in.readUTF();
+                            System.out.println("Response:\r\n" + response);
+                            return response;
+
+                        } catch (EOFException e) {
+                            // Suppress.
+                        }
                     }
+                    serverSocket.close();
+                } catch (UnknownHostException e) {
+                    System.out.println("Sock:" + e.getMessage());
+                } catch (EOFException e) {
+                    System.out.println("EOF:" + e.getMessage());
+                } catch (IOException e) {
+                    System.out.println("IO:" + e.getMessage());
                 }
-                serverSocket.close();
-            } catch (UnknownHostException e) {
-                System.out.println("Sock:" + e.getMessage());
-            } catch (EOFException e) {
-                System.out.println("EOF:" + e.getMessage());
-            } catch (IOException e) {
-                System.out.println("IO:" + e.getMessage());
+            } else {
+                System.out.println(Display.ansi_error.colorize("ERROR:No message recipient"));
             }
-        } else {
-            System.out.println(Display.ansi_error.colorize("ERROR:No message recipient"));
         }
 
         return null;
@@ -87,12 +101,7 @@ public class SenderImpl implements Sender {
 
         for (String client : clients) {
             int separatorIndex = client.lastIndexOf(":");
-
-            Initialiser.receiver_ip = client.substring(0, separatorIndex);
-            Initialiser.receiver_listening_port = Integer.parseInt(client.substring(separatorIndex + 1));
-            makeConnection();
-
-            sendMessage(message, false);
+            sendMessage(message, false, client.substring(0, separatorIndex), Integer.parseInt(client.substring(separatorIndex + 1)));
         }
 
         // Reconnect to the previous connection if one was made.

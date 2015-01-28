@@ -5,12 +5,11 @@ package org.gla.mcom.util;
 
 import jlibs.core.lang.Ansi;
 import org.gla.mcom.Sender;
-import org.gla.mcom.impl.ReceiverImpl;
-import org.gla.mcom.impl.RegistryImpl;
-import org.gla.mcom.impl.SenderImpl;
+import org.gla.mcom.impl.*;
 import org.gla.mcom.init.Initialiser;
 
 import java.net.InetAddress;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -40,17 +39,19 @@ public class Display {
     }
 
     private static void initCommands() {//
-        commands.put("ipr~ <ipr>", "set ip address<hip> of message recipient");
-        commands.put("p~ <p>", "set listening port<p> of message recipient");
+        commands.put("ipr" + Parameters.COMMAND_SEPARATOR + " <ipr>", "set ip address<hip> of message recipient");
+        commands.put("p" + Parameters.COMMAND_SEPARATOR + " <p>", "set listening port<p> of message recipient");
         commands.put("<m>", "send message <m> to recipient");
-        commands.put("c~ <c>", "check if host with name <c> exist");
+        commands.put("c" + Parameters.COMMAND_SEPARATOR + " <c>", "check if host with name <c> exist");
         commands.put("end", "terminate");
         commands.put("start", "start acting as a registrar");
         commands.put("stop", "stop acting as a registrar");
         commands.put("reg", "register the host with this registrar");
         commands.put("dereg", "deregister the host with this registrar");
+        commands.put("getreg", "get the list of available registrars");
         commands.put("lookup", "retrieve a list of all the hosts registered with this registrar");
-        commands.put("bc~ <m>", "send message <m> to everyone registered");
+        commands.put("bc" + Parameters.COMMAND_SEPARATOR + " <m>", "send message <m> to everyone registered");
+        commands.put("all", "show all");
     }
 
     @SuppressWarnings("resource")
@@ -66,8 +67,8 @@ public class Display {
     private static void execute(String command) {
         if (command.equals("?")) {
             printCommands();
-        } else if (command.contains("~")) {
-            int delimiterIndex = command.indexOf("~");
+        } else if (command.contains(Parameters.COMMAND_SEPARATOR)) {
+            int delimiterIndex = command.indexOf(Parameters.COMMAND_SEPARATOR);
 
             if (delimiterIndex == command.length() - 1) {
                 System.out.println(ansi_error.colorize("ERROR:Invalid format"));
@@ -106,7 +107,7 @@ public class Display {
                     try {
                         sender = new SenderImpl();
                         String response = sender.sendMessage("lookup", true);
-                        String[] hosts = response.split("\r\n");
+                        String[] hosts = response.split(Parameters.ITEM_SEPARATOR);
                         sender.broadcastMessage(value, hosts);
                         System.out.println("Successfully broadcast to " + hosts.length + " hosts.");
                     } catch (Exception ex) {
@@ -119,35 +120,44 @@ public class Display {
         else if (command.equals("start")) {
             if (RegistryImpl.startRegistrar()) {
 
-                ReceiverImpl.registrars.put(Initialiser.local_address.getHostAddress() + ":" + ReceiverImpl.listenSocket.getLocalPort(), true);
+                Registrars.addRegistrar(Initialiser.local_address.getHostAddress() + ":" + ReceiverImpl.listenSocket.getLocalPort());
 
                 sender = new SenderImpl();
                 System.out.println("Registrar service started!");
-                sender.broadcastMessage(Initialiser.local_address.getHostAddress() + "update registrars:" + mapToString(), convertRegistrars());
+                sender.broadcastMessage("update_registrars" + Parameters.COMMAND_SEPARATOR + Registrars.getStringRepresentation(), getAllInstance());
             } else {
                 System.out.println("Could not start registrar service! Is it already started?");
             }
         }
         // stopRegistrar
         else if (command.equals("stop")) {
-            ReceiverImpl.registrars.remove(Initialiser.local_address.getHostAddress() + ":" + ReceiverImpl.listenSocket.getLocalPort());
+            Registrars.removeRegistrar(Initialiser.local_address.getHostAddress() + ":" + ReceiverImpl.listenSocket.getLocalPort());
 
             sender = new SenderImpl();
             if (RegistryImpl.stopRegistrar()) {
-                sender.broadcastMessage(Initialiser.local_address.getHostAddress() + "update registrars:" + mapToString(), convertRegistrars());
+                sender.broadcastMessage("update registrars:" + Registrars.getStringRepresentation(), getAllInstance());
                 System.out.println("Registrar service stopped!");
             } else {
                 System.out.println("Could not stop registrar service! Is it already stopped?");
             }
         } else if (command.equals("reg") || command.equals("dereg")) {
-            command += "~" + Initialiser.local_address.getHostAddress() + ":" + ReceiverImpl.listenSocket.getLocalPort();
+            command += Parameters.COMMAND_SEPARATOR + Initialiser.local_address.getHostAddress() + ":" + ReceiverImpl.listenSocket.getLocalPort();
 
             sender.sendMessage(command, true);
         } else if (command.equals("end")) {
             System.exit(0);
+
+        } else if (command.equals("all")) {
+            String result = "";
+
+            for (String ip_port : getAllInstance()) {
+                result += ip_port + Parameters.ITEM_SEPARATOR;
+            }
+            System.out.println(result);
         } else if (command.length() > 0) {
             sender.sendMessage(command, true);
         }
+
         console();
     }
 
@@ -170,26 +180,16 @@ public class Display {
         return true;
     }
 
-
-    public static String[] convertRegistrars() {
-        String[] registrars = new String[ReceiverImpl.registrars.size()];
-        int i = 0;
-        for (String host : ReceiverImpl.registrars.keySet()) {
-            registrars[i] = host;
-            i++;
+    private static String[] getAllInstance() {
+        //noinspection unchecked
+        HashSet<String> hosts = (HashSet<String>) Registrars.getRegistrars().clone();
+        for (String registrar : Registrars.getRegistrars()) {
+            String response = sender.sendMessage("lookup", true, registrar);
+            if (response != null) {
+                hosts.addAll(Helpers.arrayToArrayList(response.split(Parameters.ITEM_SEPARATOR)));
+            }
         }
 
-        return registrars;
+        return Helpers.setToStringArray(hosts);
     }
-
-    public static String mapToString() {
-        String result = "";
-
-        for (Entry element : ReceiverImpl.registrars.entrySet()) {
-            result += element.getKey() + "&" + element.getValue() + "&";
-        }
-
-        return result.substring(0, result.length() - 1);
-    }
-
 }

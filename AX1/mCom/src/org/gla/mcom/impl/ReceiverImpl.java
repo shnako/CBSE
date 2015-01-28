@@ -6,7 +6,6 @@ package org.gla.mcom.impl;
 
 import org.gla.mcom.Receiver;
 import org.gla.mcom.Registry;
-import org.gla.mcom.Sender;
 import org.gla.mcom.util.Display;
 import org.gla.mcom.util.IPResolver;
 
@@ -16,12 +15,9 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.HashMap;
-import java.util.Map;
 
 public class ReceiverImpl implements Receiver {
     public static ServerSocket listenSocket;
-    public static Map<String, Boolean> registrars = new HashMap<String, Boolean>();
 
     public void receiveMessage() {
         Thread server_thread = new Thread(new ReceiverImpl().new ReceiverRunner());
@@ -30,13 +26,11 @@ public class ReceiverImpl implements Receiver {
 
     class ReceiverRunner implements Runnable {
         public void run() {
-            Sender sender = new SenderImpl();
             listenSocket = IPResolver.configureHostListeningSocket();
 
             //noinspection InfiniteLoopStatement
             while (true) {
                 try {
-
                     Socket clientSocket = listenSocket.accept();
                     String clientSocketString = clientSocket.getInetAddress() + ":" + clientSocket.getPort();
                     DataInputStream in = new DataInputStream(clientSocket.getInputStream());
@@ -70,15 +64,15 @@ public class ReceiverImpl implements Receiver {
                             String result = "";
 
                             for (String ip_port : registry.lookup()) {
-                                result += ip_port + "\r\n";
+                                result += ip_port + Parameters.ITEM_SEPARATOR;
                             }
 
                             send(result, out);
                             System.out.println(result);
                         }
                         closeConnection(clientSocket);
-                    } else if (r_message.contains("~")) {
-                        int delimiterIndex = r_message.indexOf("~");
+                    } else if (r_message.contains(Parameters.COMMAND_SEPARATOR)) {
+                        int delimiterIndex = r_message.indexOf(Parameters.COMMAND_SEPARATOR);
 
                         if (delimiterIndex == r_message.length() - 1) {
                             System.out.println("ERROR:Invalid format");
@@ -96,9 +90,6 @@ public class ReceiverImpl implements Receiver {
                                 } else {
                                     if (registry.register(value)) {
                                         message = value + " has been registered";
-                                        registrars.put(clientSocketString, false);
-                                        sender.broadcastMessage(clientSocketString + "update registrars:" + Display.mapToString(), Display.convertRegistrars());
-
                                     } else {
                                         message = value + " could not be registered, it is probably registered already";
                                     }
@@ -120,8 +111,6 @@ public class ReceiverImpl implements Receiver {
                                 } else {
                                     if (registry.deregister(value)) {
                                         message = value + " has been deregistered";
-                                        registrars.remove(clientSocketString);
-                                        sender.broadcastMessage(clientSocketString + "update registrars:" + Display.mapToString(), Display.convertRegistrars());
                                     } else {
                                         message = value + " could not be deregistered, it is probably not registered yet";
                                     }
@@ -132,9 +121,22 @@ public class ReceiverImpl implements Receiver {
 
                                 closeConnection(clientSocket);
                             }
+                            // getreg implementation
+                            else if (operation.equals("getreg")) {
+                                String result = "";
+
+                                for (String ip_port : Registrars.getRegistrars()) {
+                                    result += ip_port + Parameters.ITEM_SEPARATOR;
+                                }
+
+                                send(result, out);
+                                System.out.println("Returned registrars: " + result);
+                            }
+                            else if (operation.equals("update_registrars")) {
+                                parseRegistrars(value);
+                            }
                         }
                     } else {
-                        parseRegistrars(r_message);
                         System.out.println(Display.ansi_normal.colorize("[" + clientSocketString + "]" + r_message));
                         closeConnection(clientSocket);
                     }
@@ -176,17 +178,8 @@ public class ReceiverImpl implements Receiver {
         }
 
         private void parseRegistrars(String message) {
-            String map = message.substring(message.lastIndexOf("update registrars:") + 1);
-            registrars.clear();
-
-            String[] elements = map.split("&");
-            for (int i = 0; i < elements.length; i += 2) {
-                registrars.put(elements[i], Boolean.parseBoolean(elements[i + 1]));
-            }
-
+            Registrars.initializeRegistrars(message.split(Parameters.ITEM_SEPARATOR));
         }
-
-
     }
 
 }
