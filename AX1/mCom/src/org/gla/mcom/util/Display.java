@@ -134,7 +134,7 @@ public class Display {
             Registrars.removeRegistrar(Initialiser.local_address.getHostAddress() + ":" + ReceiverImpl.listenSocket.getLocalPort());
             sender = new SenderImpl();
             if (RegistryImpl.stopRegistrar()) {
-                sender.broadcastMessage("update registrars:" + Registrars.getStringRepresentation(), getAllInstance());
+                sender.broadcastMessage("update_registrars" + Parameters.COMMAND_SEPARATOR + Registrars.getStringRepresentation(), getAllInstance());
                 System.out.println("Registrar service stopped!");
             } else {
                 System.out.println("Could not stop registrar service! Is it already stopped?");
