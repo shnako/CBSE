@@ -180,7 +180,8 @@ public class Display {
         HashSet<String> hosts = (HashSet<String>) Registrars.getRegistrars().clone();
         for (String registrar : Registrars.getRegistrars()) {
             String response = sender.sendMessage("lookup", true, registrar);
-            if (response != null) {
+            if (response != null && !response.isEmpty()) {
+            	
                 hosts.addAll(Helpers.arrayToArrayList(response.split(Parameters.ITEM_SEPARATOR)));
             }
         }

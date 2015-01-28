@@ -13,7 +13,7 @@ public class Helpers {
         }
 
         if (result.isEmpty()) return "";
-        return result.substring(0, result.length() - 1);
+        return result.substring(0, result.length() - Parameters.ITEM_SEPARATOR.length());
     }
 
     public static ArrayList<String> arrayToArrayList(String[] array) {

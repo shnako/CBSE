@@ -16,99 +16,102 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 
 public class SenderImpl implements Sender {
-    private boolean accepted;
+	private boolean accepted;
 
-    public boolean makeConnection() {
-        try {
-            System.out.println("initiating tcp connection to " + Initialiser.receiver_ip + ":" + Initialiser.receiver_listening_port + ")");
-            String i_message = "ping";
-            Socket serverSocket = new Socket(Initialiser.receiver_ip, Initialiser.receiver_listening_port);
-            DataInputStream in = new DataInputStream(serverSocket.getInputStream());
-            DataOutputStream out = new DataOutputStream(serverSocket.getOutputStream());
-            out.writeUTF(i_message); // UTF is a string encoding;
+	public boolean makeConnection() {
+		try {
+			System.out.println("initiating tcp connection to " + Initialiser.receiver_ip + ":" + Initialiser.receiver_listening_port + ")");
+			String i_message = "ping";
+			Socket serverSocket = new Socket(Initialiser.receiver_ip, Initialiser.receiver_listening_port);
+			DataInputStream in = new DataInputStream(serverSocket.getInputStream());
+			DataOutputStream out = new DataOutputStream(serverSocket.getOutputStream());
+			out.writeUTF(i_message); // UTF is a string encoding;
 
-            String r_message = in.readUTF();
-            if (r_message.equals("rejected")) {
-                accepted = false;
-            } else if (r_message.equals("accepted")) {
-                accepted = true;
-            }
-            System.out.println(Display.ansi_normal2.colorize("connection to " + Initialiser.receiver_ip + ":" + Initialiser.receiver_listening_port + " " + r_message));
+			String r_message = in.readUTF();
+			if (r_message.equals("rejected")) {
+				accepted = false;
+			} else if (r_message.equals("accepted")) {
+				accepted = true;
+			}
+			System.out.println(Display.ansi_normal2.colorize("connection to " + Initialiser.receiver_ip + ":" + Initialiser.receiver_listening_port + " " + r_message));
 
-            serverSocket.close();
-        } catch (UnknownHostException e) {
-            System.out.println("Sock:" + e.getMessage());
-        } catch (EOFException e) {
-            System.out.println("EOF:" + e.getMessage());
-        } catch (IOException e) {
-            System.out.println("IO:" + e.getMessage());
-        }
+			serverSocket.close();
+		} catch (UnknownHostException e) {
+			System.out.println("Sock:" + e.getMessage());
+		} catch (EOFException e) {
+			System.out.println("EOF:" + e.getMessage());
+		} catch (IOException e) {
+			System.out.println("IO:" + e.getMessage());
+		}
 
-        return accepted;
-    }
+		return accepted;
+	}
 
-    public String sendMessage(String message, boolean expectResponse) {
-        return sendMessage(message, expectResponse, Initialiser.receiver_ip, Initialiser.receiver_listening_port);
-    }
+	public String sendMessage(String message, boolean expectResponse) {
+		return sendMessage(message, expectResponse, Initialiser.receiver_ip, Initialiser.receiver_listening_port);
+	}
 
-    public String sendMessage(String message, boolean expectResponse, String ip_port) {
-        int separatorIndex = ip_port.lastIndexOf(":");
+	public String sendMessage(String message, boolean expectResponse, String ip_port) {
+		if(ip_port != null && !ip_port.isEmpty()){
+			int separatorIndex = ip_port.lastIndexOf(":");
 
-        String ip = ip_port.substring(0, separatorIndex);
-        int port = Integer.parseInt(ip_port.substring(separatorIndex + 1));
+			String ip = ip_port.substring(0, separatorIndex);
+			int port = Integer.parseInt(ip_port.substring(separatorIndex + 1));
 
-        return sendMessage(message, expectResponse, ip, port);
-    }
+			return sendMessage(message, expectResponse, ip, port);
+		}
+		else
+			return null;
+	}
 
-    public String sendMessage(String message, boolean expectResponse, String ip, int port) {
-        if (!ip.equals(Initialiser.local_address)) {
-            if (accepted) {
-                try {
-                    Socket serverSocket = new Socket(ip, port);
-                    DataOutputStream out = new DataOutputStream(serverSocket.getOutputStream());
-                    DataInputStream in = new DataInputStream(serverSocket.getInputStream());
-                    out.writeUTF(message); // UTF is a string encoding;
-                    if (expectResponse) {
-                        try {
-                            String response = in.readUTF();
-                            System.out.println("Response:\r\n" + response);
-                            return response;
+	public String sendMessage(String message, boolean expectResponse, String ip, int port) {
+		if (!ip.equals(Initialiser.local_address)) {
+			try {
+				Socket serverSocket = new Socket(ip, port);
+				DataOutputStream out = new DataOutputStream(serverSocket.getOutputStream());
+				DataInputStream in = new DataInputStream(serverSocket.getInputStream());
+				out.writeUTF(message); // UTF is a string encoding;
+				if (expectResponse) {
+					try {
+						String response = in.readUTF();
+						System.out.println("Response:\r\n" + response);
+						return response;
 
-                        } catch (EOFException e) {
-                            // Suppress.
-                        }
-                    }
-                    serverSocket.close();
-                } catch (UnknownHostException e) {
-                    System.out.println("Sock:" + e.getMessage());
-                } catch (EOFException e) {
-                    System.out.println("EOF:" + e.getMessage());
-                } catch (IOException e) {
-                    System.out.println("IO:" + e.getMessage());
-                }
-            } else {
-                System.out.println(Display.ansi_error.colorize("ERROR:No message recipient"));
-            }
-        }
+					} catch (EOFException e) {
+						// Suppress.
+					}
+				}
+				serverSocket.close();
+			} catch (UnknownHostException e) {
+				System.out.println("Sock:" + e.getMessage());
+			} catch (EOFException e) {
+				System.out.println("EOF:" + e.getMessage());
+			} catch (IOException e) {
+				System.out.println("IO:" + e.getMessage());
+			}
+		} 
 
-        return null;
-    }
 
-    public void broadcastMessage(String message, String[] clients) {
-        // Store the previous connection's details.
-        String old_ip = Initialiser.receiver_ip;
-        int old_port = Initialiser.receiver_listening_port;
+		return null;
+	}
 
-        for (String client : clients) {
-            int separatorIndex = client.lastIndexOf(":");
-            sendMessage(message, false, client.substring(0, separatorIndex), Integer.parseInt(client.substring(separatorIndex + 1)));
-        }
+	public void broadcastMessage(String message, String[] clients) {
+		// Store the previous connection's details.
+		String old_ip = Initialiser.receiver_ip;
+		int old_port = Initialiser.receiver_listening_port;
 
-        // Reconnect to the previous connection if one was made.
-        if (old_port > -1) {
-            Initialiser.receiver_ip = old_ip;
-            Initialiser.receiver_listening_port = old_port;
-            makeConnection();
-        }
-    }
+		for (String client : clients) {
+			if(!client.isEmpty()){
+				int separatorIndex = client.lastIndexOf(":");
+				sendMessage(message, false, client.substring(0, separatorIndex), Integer.parseInt(client.substring(separatorIndex + 1)));
+			}
+		}
+
+		// Reconnect to the previous connection if one was made.
+		if (old_port > -1) {
+			Initialiser.receiver_ip = old_ip;
+			Initialiser.receiver_listening_port = old_port;
+			makeConnection();
+		}
+	}
 }
