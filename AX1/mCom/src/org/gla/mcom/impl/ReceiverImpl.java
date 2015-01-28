@@ -71,6 +71,17 @@ public class ReceiverImpl implements Receiver {
                             System.out.println(result);
                         }
                         closeConnection(clientSocket);
+                    }
+                    // getreg implementation
+                    else if (r_message.equals("getreg")) {
+                        String result = "";
+
+                        for (String ip_port : Registrars.getRegistrars()) {
+                            result += ip_port + Parameters.ITEM_SEPARATOR;
+                        }
+
+                        send(result, out);
+                        System.out.println("Returned registrars: " + result);
                     } else if (r_message.contains(Parameters.COMMAND_SEPARATOR)) {
                         int delimiterIndex = r_message.indexOf(Parameters.COMMAND_SEPARATOR);
 
@@ -120,17 +131,6 @@ public class ReceiverImpl implements Receiver {
                                 System.out.println(message);
 
                                 closeConnection(clientSocket);
-                            }
-                            // getreg implementation
-                            else if (operation.equals("getreg")) {
-                                String result = "";
-
-                                for (String ip_port : Registrars.getRegistrars()) {
-                                    result += ip_port + Parameters.ITEM_SEPARATOR;
-                                }
-
-                                send(result, out);
-                                System.out.println("Returned registrars: " + result);
                             }
                             else if (operation.equals("update_registrars")) {
                                 parseRegistrars(value);
