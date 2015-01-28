@@ -101,8 +101,7 @@ public class Display {
                 } else if (operation.equals("bc")) {
                     try {
                         sender = new SenderImpl();
-                        String response = sender.sendMessage("lookup", true);
-                        String[] hosts = response.split(Parameters.ITEM_SEPARATOR);
+                        String[] hosts = getAllInstances();
                         sender.broadcastMessage(value, hosts);
                         System.out.println("Successfully broadcast to " + hosts.length + " hosts.");
                     } catch (Exception ex) {
@@ -117,7 +116,7 @@ public class Display {
                 Registrars.addRegistrar(Initialiser.local_address.getHostAddress() + ":" + ReceiverImpl.listenSocket.getLocalPort());
                 sender = new SenderImpl();
                 System.out.println("Registrar service started!");
-                sender.broadcastMessage("update_registrars" + Parameters.COMMAND_SEPARATOR + Registrars.getStringRepresentation(), getAllInstance());
+                sender.broadcastMessage("update_registrars" + Parameters.COMMAND_SEPARATOR + Registrars.getStringRepresentation(), getAllInstances());
             } else {
                 System.out.println("Could not start registrar service! Is it already started?");
             }
@@ -134,7 +133,7 @@ public class Display {
             Registrars.removeRegistrar(Initialiser.local_address.getHostAddress() + ":" + ReceiverImpl.listenSocket.getLocalPort());
             sender = new SenderImpl();
             if (RegistryImpl.stopRegistrar()) {
-                sender.broadcastMessage("update_registrars" + Parameters.COMMAND_SEPARATOR + Registrars.getStringRepresentation(), getAllInstance());
+                sender.broadcastMessage("update_registrars" + Parameters.COMMAND_SEPARATOR + Registrars.getStringRepresentation(), getAllInstances());
                 System.out.println("Registrar service stopped!");
             } else {
                 System.out.println("Could not stop registrar service! Is it already stopped?");
@@ -146,7 +145,7 @@ public class Display {
             System.exit(0);
         } else if (command.equals("all")) {
             String result = "";
-            for (String ip_port : getAllInstance()) {
+            for (String ip_port : getAllInstances()) {
                 result += ip_port + Parameters.ITEM_SEPARATOR;
             }
             System.out.println(result);
@@ -175,7 +174,7 @@ public class Display {
         return true;
     }
 
-    private static String[] getAllInstance() {
+    private static String[] getAllInstances() {
         //noinspection unchecked
         HashSet<String> hosts = (HashSet<String>) Registrars.getRegistrars().clone();
         for (String registrar : Registrars.getRegistrars()) {
