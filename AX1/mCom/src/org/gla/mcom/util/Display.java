@@ -129,6 +129,10 @@ public class Display {
                 System.out.println("Could not start registrar service! Is it already started?");
             }
         }
+        else if (command.equals("getreg")) {
+        	Registrars.initializeRegistrars(sender.sendMessage("getreg", true).split(Parameters.ITEM_SEPARATOR));
+        	System.out.println("Got registrars:\r\n"+Registrars.getStringRepresentation());
+        }
         // stopRegistrar
         else if (command.equals("stop")) {
             Registrars.removeRegistrar(Initialiser.local_address.getHostAddress() + ":" + ReceiverImpl.listenSocket.getLocalPort());
