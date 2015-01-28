@@ -7,34 +7,33 @@
 
 package org.gla.mcom.init;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-
 import org.gla.mcom.impl.ReceiverImpl;
 import org.gla.mcom.util.Display;
 import org.gla.mcom.util.IPResolver;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+
 public class Initialiser {
-	
-	public static String receiver_ip;
-	public static int receiver_listening_port = -1;
-	
-	public static InetAddress local_address = null;
-	public static ReceiverImpl receiver;
-	
-	public static void main(String args[]) {		
-		try {
-			local_address = IPResolver.getLocalHostLANAddress();
-			startReceiver();						
-			new Display();
-		} 
-		catch (UnknownHostException e) {
-			e.printStackTrace();
-		}				     	
-	}	
-	
-	private static void startReceiver(){
-		receiver = new ReceiverImpl();
-		receiver.receiveMessage();
-	}
+
+    public static String receiver_ip;
+    public static int receiver_listening_port = -1;
+
+    public static InetAddress local_address = null;
+    public static ReceiverImpl receiver;
+
+    public static void main(String args[]) {
+        try {
+            local_address = IPResolver.getLocalHostLANAddress();
+            startReceiver();
+            new Display();
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void startReceiver() {
+        receiver = new ReceiverImpl();
+        receiver.receiveMessage();
+    }
 }
