@@ -9,9 +9,7 @@ public abstract class Registrars {
         return registrars;
     }
 
-    public static void setRegistrars(HashSet<String> registrars) {
-        Registrars.registrars = registrars;
-    }
+    public static int getRegistrarCount() { return registrars.size(); }
 
     public static void addRegistrar(String registrar) {
         registrars.add(registrar);

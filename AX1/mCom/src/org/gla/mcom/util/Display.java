@@ -112,18 +112,18 @@ public class Display {
             if (RegistryImpl.startRegistrar()) {
                 Registrars.addRegistrar(Initialiser.local_address.getHostAddress() + ":" + ReceiverImpl.listenSocket.getLocalPort());
                 sender = new SenderImpl();
-                System.out.println("Registrar service started!");
                 sender.broadcastMessage("update_registrars" + Parameters.COMMAND_SEPARATOR + Registrars.getStringRepresentation(), getAllInstances());
+                System.out.println("Registrar service started!");
             } else {
                 System.out.println("Could not start registrar service! Is it already started?");
             }
         } else if (command.equals("getreg")) {
             Registrars.initializeRegistrars(sender.sendMessage("getreg", true).split(Parameters.ITEM_SEPARATOR));
-            System.out.println("Got registrars:\r\n" + Registrars.getStringRepresentation());
-        }
-        else if (command.equals("getreg")) {
-        	Registrars.initializeRegistrars(sender.sendMessage("getreg", true).split(Parameters.ITEM_SEPARATOR));
-        	System.out.println("Got registrars:\r\n"+Registrars.getStringRepresentation());
+            if (Registrars.getRegistrarCount() != 0) {
+                System.out.println("Got " + Registrars.getRegistrarCount() + " registrars:\r\n" + Registrars.getStringRepresentation());
+            } else {
+                System.out.println("There are no registrars available!");
+            }
         }
         // stopRegistrar
         else if (command.equals("stop")) {

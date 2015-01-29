@@ -65,7 +65,7 @@ public class SenderImpl implements Sender {
 	}
 
 	public String sendMessage(String message, boolean expectResponse, String ip, int port) {
-		if (!ip.equals(Initialiser.local_address)) {
+		if (!ip.equals(Initialiser.local_address.toString())) {
 			try {
 				Socket serverSocket = new Socket(ip, port);
 				DataOutputStream out = new DataOutputStream(serverSocket.getOutputStream());
@@ -73,9 +73,7 @@ public class SenderImpl implements Sender {
 				out.writeUTF(message); // UTF is a string encoding;
 				if (expectResponse) {
 					try {
-						String response = in.readUTF();
-						System.out.println("Response:\r\n" + response);
-						return response;
+						return in.readUTF();
 
 					} catch (EOFException e) {
 						// Suppress.
