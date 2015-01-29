@@ -24,8 +24,12 @@ public abstract class Registrars {
     }
 
     public static void initializeRegistrars(String[] registrarArray) {
-        Registrars.registrars = new HashSet<String>(registrarArray.length);
-
+    	if (registrarArray.length == 1 && registrarArray[0].equals("")){
+            registrarArray = new String[0];
+    	}
+    	
+    	Registrars.registrars = new HashSet<String>(registrarArray.length);
+    	
         for (String registrar : registrarArray) {
             addRegistrar(registrar);
         }
