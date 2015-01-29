@@ -61,14 +61,16 @@ public class ReceiverImpl implements Receiver {
 						if (registry == null) {
 							send("This is not a registrar!", out);
 						} else {
+                            String[] registryHosts = registry.lookup();
+
 							String result = "";
 
-							for (String ip_port : registry.lookup()) {
+							for (String ip_port : registryHosts) {
 								result += ip_port + Parameters.ITEM_SEPARATOR;
 							}
 
 							send(result, out);
-							System.out.println(result);
+							System.out.println("Lookup returned " + registryHosts.length + " hosts.");
 						}
 						closeConnection(clientSocket);
 					}
