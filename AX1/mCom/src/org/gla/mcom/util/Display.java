@@ -193,8 +193,14 @@ public class Display {
         } else if (command.equals("end")) {
             System.exit(0);
         } else if (command.length() > 0) {
-            sender = new SenderImpl();
-            sender.sendMessage(command, true);
+        	try{
+        		sender = new SenderImpl();
+                sender.sendMessage(command, true);
+        	}
+        	catch(Exception e){
+        		System.out.println("Not connected to anyone");
+        	}
+            
         }
         console();
     }
