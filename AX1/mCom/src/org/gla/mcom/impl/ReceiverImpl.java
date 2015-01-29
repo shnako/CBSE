@@ -81,9 +81,14 @@ public class ReceiverImpl implements Receiver {
 						for (String ip_port : Registrars.getRegistrars()) {
 							result += ip_port + Parameters.ITEM_SEPARATOR;
 						}
-
+						
 						send(result, out);
-						System.out.println("Returned registrars: " + result);
+						if(result.equals("")){
+							System.out.println("No registered Registrars");
+						}
+						else{
+							System.out.println("Returned registrars: " + result);
+						}
 					} else if (r_message.contains(Parameters.COMMAND_SEPARATOR)) {
 						int delimiterIndex = r_message.indexOf(Parameters.COMMAND_SEPARATOR);
 

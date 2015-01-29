@@ -141,6 +141,7 @@ public class Display {
             try {
                 command += Parameters.COMMAND_SEPARATOR + Initialiser.local_address.getHostAddress() + ":" + ReceiverImpl.listenSocket.getLocalPort();
                 System.out.println(sender.sendMessage(command, true));
+            	
             } catch (Exception ex) {
                 System.out.println("Not connected to anyone!");
             }
