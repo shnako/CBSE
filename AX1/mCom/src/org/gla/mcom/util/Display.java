@@ -178,7 +178,10 @@ public class Display {
     private static String[] getAllInstances() {
         //noinspection unchecked
         HashSet<String> hosts = (HashSet<String>) Registrars.getRegistrars().clone();
-        hosts.addAll(Helpers.arrayToArrayList((RegistryImpl.getRegistryInstance().lookup())));
+        if (RegistryImpl.isRegistrar()) {
+            hosts.addAll(Helpers.arrayToArrayList((RegistryImpl.getRegistryInstance().lookup())));
+        }
+
         for (String registrar : Registrars.getRegistrars()) {
             String response = sender.sendMessage("lookup", true, registrar);
             if (response != null && !response.isEmpty()) {

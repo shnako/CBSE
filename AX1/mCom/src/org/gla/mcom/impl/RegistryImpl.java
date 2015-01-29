@@ -36,6 +36,11 @@ public class RegistryImpl implements Registry {
         return true;
     }
 
+
+    public static boolean isRegistrar() {
+        return registrySingleton != null;
+    }
+
     @Override
     public String[] lookup() {
         String[] result = new String[ip_ports.size()];
