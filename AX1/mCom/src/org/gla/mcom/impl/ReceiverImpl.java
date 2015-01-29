@@ -102,7 +102,7 @@ public class ReceiverImpl implements Receiver {
 								if (registry.register(value)) {
 									message = value + " has been registered";
 								} else {
-									message = value + " could not be registered, it is probably registered already";
+									message = value + " could not be registered, it is registered already";
 								}
 
 							}
@@ -123,7 +123,7 @@ public class ReceiverImpl implements Receiver {
 								if (registry.deregister(value)) {
 									message = value + " has been deregistered";
 								} else {
-									message = value + " could not be deregistered, it is probably not registered yet";
+									message = value + " could not be deregistered, it is not registered yet";
 								}
 							}
 
@@ -150,7 +150,7 @@ public class ReceiverImpl implements Receiver {
 		}
 
 		private boolean acceptPing(Socket clientSocket) { //broadcasting own address
-			System.out.println(Display.ansi_normal2.colorize("now connected to " + clientSocket.getInetAddress() + ":" + clientSocket.getPort()));
+			System.out.println(Display.ansi_normal2.colorize("Connected to " + clientSocket.getInetAddress() + ":" + clientSocket.getPort()));
 
 			return true;
 		}
