@@ -117,7 +117,9 @@ public class Display {
             } else {
                 System.out.println("Could not start registrar service! Is it already started?");
             }
-        } else if (command.equals("getreg")) {
+        }
+        // getreg
+        else if (command.equals("getreg")) {
             Registrars.initializeRegistrars(sender.sendMessage("getreg", true).split(Parameters.ITEM_SEPARATOR));
             if (Registrars.getRegistrarCount() != 0) {
                 System.out.println("Got " + Registrars.getRegistrarCount() + " registrars:\r\n" + Registrars.getStringRepresentation());
@@ -139,10 +141,14 @@ public class Display {
             } else {
                 System.out.println("Could not stop registrar service! Is it already stopped?");
             }
-        } else if (command.equals("reg") || command.equals("dereg")) {
+        }
+        // reg and dereg
+        else if (command.equals("reg") || command.equals("dereg")) {
             command += Parameters.COMMAND_SEPARATOR + Initialiser.local_address.getHostAddress() + ":" + ReceiverImpl.listenSocket.getLocalPort();
             System.out.println(sender.sendMessage(command, true));
-        } else if (command.equals("lookup")) {
+        }
+        // lookup
+        else if (command.equals("lookup")) {
             sender = new SenderImpl();
             String response = sender.sendMessage(command, true);
             if (response.isEmpty()) {
@@ -153,11 +159,17 @@ public class Display {
         } else if (command.equals("end")) {
             System.exit(0);
         } else if (command.equals("all")) {
-            String result = "";
+            String response = "";
+
             for (String ip_port : getAllInstances()) {
-                result += ip_port + Parameters.ITEM_SEPARATOR;
+                response += ip_port + Parameters.ITEM_SEPARATOR;
             }
-            System.out.println(result);
+
+            if (response.isEmpty()) {
+                System.out.println("All hosts lookup returned no results.");
+            } else {
+                System.out.println("All hosts lookup results:\r\n" + response);
+            }
         } else if (command.length() > 0) {
             sender.sendMessage(command, true);
         }
