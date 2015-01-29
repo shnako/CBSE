@@ -17,169 +17,174 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 public class ReceiverImpl implements Receiver {
-    public static ServerSocket listenSocket;
+	public static ServerSocket listenSocket;
 
-    public void receiveMessage() {
-        Thread server_thread = new Thread(new ReceiverImpl().new ReceiverRunner());
-        server_thread.start();
-    }
+	public void receiveMessage() {
+		Thread server_thread = new Thread(new ReceiverImpl().new ReceiverRunner());
+		server_thread.start();
+	}
 
-    class ReceiverRunner implements Runnable {
-        public void run() {
-            listenSocket = IPResolver.configureHostListeningSocket();
+	class ReceiverRunner implements Runnable {
+		public void run() {
+			listenSocket = IPResolver.configureHostListeningSocket();
 
-            //noinspection InfiniteLoopStatement
-            while (true) {
-                try {
-                    Socket clientSocket = listenSocket.accept();
-                    String clientSocketString = clientSocket.getInetAddress() + ":" + clientSocket.getPort();
-                    DataInputStream in = new DataInputStream(clientSocket.getInputStream());
-                    DataOutputStream out = new DataOutputStream(clientSocket.getOutputStream());
+			//noinspection InfiniteLoopStatement
+			while (true) {
+				try {
+					Socket clientSocket = listenSocket.accept();
+					String clientSocketString = clientSocket.getInetAddress() + ":" + clientSocket.getPort();
+					DataInputStream in = new DataInputStream(clientSocket.getInputStream());
+					DataOutputStream out = new DataOutputStream(clientSocket.getOutputStream());
 
-                    String r_message = in.readUTF();
+					String r_message = in.readUTF();
 
-                    if (r_message.equals("ping")) { //client checking recipient existence
-                        boolean accepted = acceptPing(clientSocket);
-                        String response;
-                        if (accepted) {
-                            response = "accepted";
-                            send(response, out);
-                            closeConnection(clientSocket);
-                        } else {
-                            response = "rejected";
-                            send(response, out);
-                            closeConnection(clientSocket);
-                        }
-                    } else if (r_message.equals("disconnect")) {
-                        System.out.println(Display.ansi_normal2.colorize("disconnecting " + clientSocketString));
-                        send("" + clientSocketString + " disconnected", out);
-                        closeConnection(clientSocket);
-                    }
-                    // lookup implementation
-                    else if (r_message.equals("lookup")) {
-                        Registry registry = RegistryImpl.getRegistryInstance();
-                        if (registry == null) {
-                            send("This is not a registrar!", out);
-                        } else {
-                            String result = "";
+					if (r_message.equals("ping")) { //client checking recipient existence
+						boolean accepted = acceptPing(clientSocket);
+						String response;
+						if (accepted) {
+							response = "accepted";
+							send(response, out);
+							closeConnection(clientSocket);
+						} else {
+							response = "rejected";
+							send(response, out);
+							closeConnection(clientSocket);
+						}
+					} else if (r_message.equals("disconnect")) {
+						System.out.println(Display.ansi_normal2.colorize("disconnecting " + clientSocketString));
+						send("" + clientSocketString + " disconnected", out);
+						closeConnection(clientSocket);
+					}
+					// lookup implementation
+					else if (r_message.equals("lookup")) {
+						Registry registry = RegistryImpl.getRegistryInstance();
+						if (registry == null) {
+							send("This is not a registrar!", out);
+						} else {
+							String result = "";
 
-                            for (String ip_port : registry.lookup()) {
-                                result += ip_port + Parameters.ITEM_SEPARATOR;
-                            }
+							for (String ip_port : registry.lookup()) {
+								result += ip_port + Parameters.ITEM_SEPARATOR;
+							}
 
-                            send(result, out);
-                            System.out.println(result);
-                        }
-                        closeConnection(clientSocket);
-                    }
-                    // getreg implementation
-                    else if (r_message.equals("getreg")) {
-                        String result = "";
+							send(result, out);
+							System.out.println(result);
+						}
+						closeConnection(clientSocket);
+					}
+					// getreg implementation
+					else if (r_message.equals("getreg")) {
+						String result = "";
 
-                        for (String ip_port : Registrars.getRegistrars()) {
-                            result += ip_port + Parameters.ITEM_SEPARATOR;
-                        }
+						for (String ip_port : Registrars.getRegistrars()) {
+							result += ip_port + Parameters.ITEM_SEPARATOR;
+						}
 
-                        send(result, out);
-                        System.out.println("Returned registrars: " + result);
-                    } else if (r_message.contains(Parameters.COMMAND_SEPARATOR)) {
-                        int delimiterIndex = r_message.indexOf(Parameters.COMMAND_SEPARATOR);
+						send(result, out);
+						System.out.println("Returned registrars: " + result);
+					} else if (r_message.contains(Parameters.COMMAND_SEPARATOR)) {
+						int delimiterIndex = r_message.indexOf(Parameters.COMMAND_SEPARATOR);
 
-                        if (delimiterIndex == r_message.length() - 1) {
-                            System.out.println("ERROR:Invalid format");
-                        } else {
-                            String operation = r_message.substring(0, delimiterIndex);
-                            String value = r_message.substring(delimiterIndex + 1);
+						String operation = r_message.substring(0, delimiterIndex);
+						String value = "";
+						if (delimiterIndex != r_message.length() - 1) {
+							value = r_message.substring(delimiterIndex + 1);
+						}
 
-                            // register implementation
-                            if (operation.equals("reg")) {
-                                String message;
-                                Registry registry = RegistryImpl.getRegistryInstance();
+						// register implementation
+						if (operation.equals("reg")) {
+							String message;
+							Registry registry = RegistryImpl.getRegistryInstance();
 
-                                if (registry == null) {
-                                    message = "This is not a registrar!";
-                                } else {
-                                    if (registry.register(value)) {
-                                        message = value + " has been registered";
-                                    } else {
-                                        message = value + " could not be registered, it is probably registered already";
-                                    }
+							if (registry == null) {
+								message = "This is not a registrar!";
+							} else {
+								if (registry.register(value)) {
+									message = value + " has been registered";
+								} else {
+									message = value + " could not be registered, it is probably registered already";
+								}
 
-                                }
+							}
 
-                                send(message, out);
-                                System.out.println(message);
+							send(message, out);
+							System.out.println(message);
 
-                                closeConnection(clientSocket);
-                            }
-                            // deregister implementation
-                            else if (operation.equals("dereg")) {
-                                String message;
-                                Registry registry = RegistryImpl.getRegistryInstance();
+							closeConnection(clientSocket);
+						}
+						// deregister implementation
+						else if (operation.equals("dereg")) {
+							String message;
+							Registry registry = RegistryImpl.getRegistryInstance();
 
-                                if (registry == null) {
-                                    message = "This is not a registrar!";
-                                } else {
-                                    if (registry.deregister(value)) {
-                                        message = value + " has been deregistered";
-                                    } else {
-                                        message = value + " could not be deregistered, it is probably not registered yet";
-                                    }
-                                }
+							if (registry == null) {
+								message = "This is not a registrar!";
+							} else {
+								if (registry.deregister(value)) {
+									message = value + " has been deregistered";
+								} else {
+									message = value + " could not be deregistered, it is probably not registered yet";
+								}
+							}
 
-                                send(message, out);
-                                System.out.println(message);
+							send(message, out);
+							System.out.println(message);
 
-                                closeConnection(clientSocket);
-                            }
-                            else if (operation.equals("update_registrars")) {
-                                parseRegistrars(value);
-                            }
-                        }
-                    } else {
-                        System.out.println(Display.ansi_normal.colorize("[" + clientSocketString + "]" + r_message));
-                        closeConnection(clientSocket);
-                    }
-                } catch (EOFException e) {
-                    System.out.println("EOF:" + e.getMessage());
-                } catch (IOException e) {
-                    System.out.println("IO:" + e.getMessage());
-                }
+							closeConnection(clientSocket);
+						}
+						else if (operation.equals("update_registrars")) {
+							int regCount = parseRegistrars(value);
+							System.out.println("Registrars updated. New count: " + regCount);
+						}
+					} else {
+						System.out.println(Display.ansi_normal.colorize("[" + clientSocketString + "]" + r_message));
+						closeConnection(clientSocket);
+					}
+				} catch (EOFException e) {
+					System.out.println("EOF:" + e.getMessage());
+				} catch (IOException e) {
+					System.out.println("IO:" + e.getMessage());
+				}
 
-            }
-        }
+			}
+		}
 
-        private boolean acceptPing(Socket clientSocket) { //broadcasting own address
-            System.out.println(Display.ansi_normal2.colorize("now connected to " + clientSocket.getInetAddress() + ":" + clientSocket.getPort()));
+		private boolean acceptPing(Socket clientSocket) { //broadcasting own address
+			System.out.println(Display.ansi_normal2.colorize("now connected to " + clientSocket.getInetAddress() + ":" + clientSocket.getPort()));
 
-            return true;
-        }
+			return true;
+		}
 
-        private void send(String message, DataOutputStream out) {
-            if (out != null) {
-                try {
-                    out.writeUTF(message);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            } else {
-                System.out.println(Display.ansi_error.colorize("ERROR:No receiver"));
-            }
-        }
+		private void send(String message, DataOutputStream out) {
+			if (out != null) {
+				try {
+					out.writeUTF(message);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			} else {
+				System.out.println(Display.ansi_error.colorize("ERROR:No receiver"));
+			}
+		}
 
-        private void closeConnection(Socket clientSocket) {
-            if (clientSocket != null) {
-                try {
-                    clientSocket.close();
-                } catch (IOException e) {
-                    /* close failed */
-                }
-            }
-        }
+		private void closeConnection(Socket clientSocket) {
+			if (clientSocket != null) {
+				try {
+					clientSocket.close();
+				} catch (IOException e) {
+					/* close failed */
+				}
+			}
+		}
 
-        private void parseRegistrars(String message) {
-            Registrars.initializeRegistrars(message.split(Parameters.ITEM_SEPARATOR));
-        }
-    }
+		private int parseRegistrars(String message) {
+			String[] registrars = message.split(Parameters.ITEM_SEPARATOR);
+			if (registrars.length == 1 && registrars[0].isEmpty()) {
+				registrars = new String[0];
+			}
+			Registrars.initializeRegistrars(registrars);
+			return registrars.length;
+		}
+	}
 
 }
