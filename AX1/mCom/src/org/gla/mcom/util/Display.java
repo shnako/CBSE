@@ -9,8 +9,11 @@ import org.gla.mcom.impl.*;
 import org.gla.mcom.init.Initialiser;
 
 import java.net.InetAddress;
-import java.util.*;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Scanner;
 
 public class Display {
     public static final Ansi ansi_help = new Ansi(Ansi.Attribute.NORMAL, Ansi.Color.RED, null);
@@ -118,15 +121,6 @@ public class Display {
                 System.out.println("Could not start registrar service! Is it already started?");
             }
         }
-        // getreg
-        else if (command.equals("getreg")) {
-            Registrars.initializeRegistrars(sender.sendMessage("getreg", true).split(Parameters.ITEM_SEPARATOR));
-            if (Registrars.getRegistrarCount() != 0) {
-                System.out.println("Got " + Registrars.getRegistrarCount() + " registrars:\r\n" + Registrars.getStringRepresentation());
-            } else {
-                System.out.println("There are no registrars available!");
-            }
-        }
         // stopRegistrar
         else if (command.equals("stop")) {
             Registrars.removeRegistrar(Initialiser.local_address.getHostAddress() + ":" + ReceiverImpl.listenSocket.getLocalPort());
@@ -144,33 +138,62 @@ public class Display {
         }
         // reg and dereg
         else if (command.equals("reg") || command.equals("dereg")) {
-            command += Parameters.COMMAND_SEPARATOR + Initialiser.local_address.getHostAddress() + ":" + ReceiverImpl.listenSocket.getLocalPort();
-            System.out.println(sender.sendMessage(command, true));
+            try {
+                command += Parameters.COMMAND_SEPARATOR + Initialiser.local_address.getHostAddress() + ":" + ReceiverImpl.listenSocket.getLocalPort();
+                System.out.println(sender.sendMessage(command, true));
+            	
+            } catch (Exception ex) {
+                System.out.println("Not connected to anyone!");
+            }
+        }
+        // getreg
+        else if (command.equals("getreg")) {
+            try {
+                Registrars.initializeRegistrars(sender.sendMessage("getreg", true).split(Parameters.ITEM_SEPARATOR));
+                if (Registrars.getRegistrarCount() != 0) {
+                    System.out.println("Got " + Registrars.getRegistrarCount() + " registrars:\r\n" + Registrars.getStringRepresentation());
+                } else {
+                    System.out.println("There are no registrars available!");
+                }
+            } catch (Exception ex) {
+                System.out.println("Not connected to anyone!");
+            }
         }
         // lookup
         else if (command.equals("lookup")) {
-            sender = new SenderImpl();
-            String response = sender.sendMessage(command, true);
-            if (response.isEmpty()) {
-                System.out.println("Lookup returned no results.");
-            } else {
-                System.out.println("Lookup results:\r\n" + response);
+            try {
+                sender = new SenderImpl();
+                String response = sender.sendMessage(command, true);
+                if (response != null) {
+                    if (response.isEmpty()) {
+                        System.out.println("Lookup returned no results.");
+                    } else {
+                        System.out.println("Lookup results:\r\n" + response);
+                    }
+                }
+            } catch (Exception ex) {
+                System.out.println("Not connected to anyone!");
+            }
+        } else if (command.equals("all")) {
+            try {
+                String response = "";
+
+                for (String ip_port : getAllInstances()) {
+                    response += ip_port + Parameters.ITEM_SEPARATOR;
+                }
+
+                if (response.isEmpty()) {
+                    System.out.println("All hosts lookup returned no results.");
+                } else {
+                    System.out.println("All hosts lookup results:\r\n" + response);
+                }
+            } catch (Exception ex) {
+                System.out.println("Not connected to anyone!");
             }
         } else if (command.equals("end")) {
             System.exit(0);
-        } else if (command.equals("all")) {
-            String response = "";
-
-            for (String ip_port : getAllInstances()) {
-                response += ip_port + Parameters.ITEM_SEPARATOR;
-            }
-
-            if (response.isEmpty()) {
-                System.out.println("All hosts lookup returned no results.");
-            } else {
-                System.out.println("All hosts lookup results:\r\n" + response);
-            }
         } else if (command.length() > 0) {
+            sender = new SenderImpl();
             sender.sendMessage(command, true);
         }
         console();
@@ -205,7 +228,6 @@ public class Display {
         for (String registrar : Registrars.getRegistrars()) {
             String response = sender.sendMessage("lookup", true, registrar);
             if (response != null && !response.isEmpty()) {
-            	
                 hosts.addAll(Helpers.arrayToArrayList(response.split(Parameters.ITEM_SEPARATOR)));
             }
         }
