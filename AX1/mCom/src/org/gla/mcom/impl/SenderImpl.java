@@ -99,7 +99,7 @@ public class SenderImpl implements Sender {
 		int old_port = Initialiser.receiver_listening_port;
 
 		for (String client : clients) {
-			if(!client.isEmpty()){
+			if(!client.isEmpty() && !client.equals(Initialiser.local_address.toString() + ":" + Initialiser.receiver_listening_port)){
 				int separatorIndex = client.lastIndexOf(":");
 				sendMessage(message, false, client.substring(0, separatorIndex), Integer.parseInt(client.substring(separatorIndex + 1)));
 			}
