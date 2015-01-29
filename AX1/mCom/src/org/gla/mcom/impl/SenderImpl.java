@@ -65,30 +65,32 @@ public class SenderImpl implements Sender {
 	}
 
 	public String sendMessage(String message, boolean expectResponse, String ip, int port) {
-		if (!ip.equals(Initialiser.local_address.toString())) {
-			try {
-				Socket serverSocket = new Socket(ip, port);
-				DataOutputStream out = new DataOutputStream(serverSocket.getOutputStream());
-				DataInputStream in = new DataInputStream(serverSocket.getInputStream());
-				out.writeUTF(message); // UTF is a string encoding;
-				if (expectResponse) {
-					try {
-						return in.readUTF();
-
-					} catch (EOFException e) {
-						// Suppress.
+		if (ip != null) {
+			if (!ip.equals(Initialiser.local_address.toString().replace("/", ""))) {
+				try {
+					Socket serverSocket = new Socket(ip, port);
+					DataOutputStream out = new DataOutputStream(serverSocket.getOutputStream());
+					DataInputStream in = new DataInputStream(serverSocket.getInputStream());
+					out.writeUTF(message); // UTF is a string encoding;
+					if (expectResponse) {
+						try {
+							return in.readUTF();
+						} catch (EOFException e) {
+							// Suppress.
+						}
 					}
+					serverSocket.close();
+				} catch (UnknownHostException e) {
+					System.out.println("Sock:" + e.getMessage());
+				} catch (EOFException e) {
+					System.out.println("EOF:" + e.getMessage());
+				} catch (IOException e) {
+					System.out.println("IO:" + e.getMessage());
 				}
-				serverSocket.close();
-			} catch (UnknownHostException e) {
-				System.out.println("Sock:" + e.getMessage());
-			} catch (EOFException e) {
-				System.out.println("EOF:" + e.getMessage());
-			} catch (IOException e) {
-				System.out.println("IO:" + e.getMessage());
 			}
-		} 
-
+		} else {
+			System.out.println("Not connected to anyone!");
+		}
 
 		return null;
 	}
