@@ -82,8 +82,7 @@ public class IPResolver {
     public static ServerSocket configureHostListeningSocket() {
         ServerSocket s = null;
         try {
-            // TODO Replace this
-            s = new ServerSocket(9999); //0 for random free port
+            s = new ServerSocket(0); //0 for random free port
         } catch (IOException e) {
             e.printStackTrace();
         }
