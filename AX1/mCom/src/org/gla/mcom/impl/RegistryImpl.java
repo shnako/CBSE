@@ -10,7 +10,6 @@ public class RegistryImpl implements Registry {
 
     private RegistryImpl() {
         ip_ports = new HashSet<String>();
-
     }
 
     public static Registry getRegistryInstance() {
@@ -35,12 +34,6 @@ public class RegistryImpl implements Registry {
         registrySingleton = null;
 
         return true;
-    }
-
-
-    @SuppressWarnings("UnusedDeclaration")
-    public static boolean isRegistrar() {
-        return registrySingleton != null;
     }
 
     @Override

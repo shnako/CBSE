@@ -9,11 +9,8 @@ import org.gla.mcom.impl.*;
 import org.gla.mcom.init.Initialiser;
 
 import java.net.InetAddress;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Scanner;
 
 public class Display {
     public static final Ansi ansi_help = new Ansi(Ansi.Attribute.NORMAL, Ansi.Color.RED, null);
@@ -131,9 +128,13 @@ public class Display {
         // stopRegistrar
         else if (command.equals("stop")) {
             Registrars.removeRegistrar(Initialiser.local_address.getHostAddress() + ":" + ReceiverImpl.listenSocket.getLocalPort());
-            sender = new SenderImpl();
+
+            String[] registeredClients = RegistryImpl.getRegistryInstance().lookup();
             if (RegistryImpl.stopRegistrar()) {
-                sender.broadcastMessage("update_registrars" + Parameters.COMMAND_SEPARATOR + Registrars.getStringRepresentation(), getAllInstances());
+                sender.broadcastMessage(
+                        "update_registrars" + Parameters.COMMAND_SEPARATOR + Registrars.getStringRepresentation(),
+                        Helpers.concatStringArrays(registeredClients, getAllInstances())
+                );
                 System.out.println("Registrar service stopped!");
             } else {
                 System.out.println("Could not stop registrar service! Is it already stopped?");

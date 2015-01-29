@@ -1,8 +1,7 @@
 package org.gla.mcom.impl;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Stream;
 
 public class Helpers {
     public static String setToString(Set<String> set) {
@@ -31,6 +30,15 @@ public class Helpers {
             result[i++] = str;
         }
         return result;
+    }
+
+    public static String[] concatStringArrays(String[] a1, String[] a2) {
+        HashSet<String> result = new HashSet<String>(a1.length + a2.length);
+
+        result.addAll(arrayToArrayList(a1));
+        result.addAll(arrayToArrayList(a2));
+
+        return setToStringArray(result);
     }
 }
 
