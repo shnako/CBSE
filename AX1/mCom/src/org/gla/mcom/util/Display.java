@@ -141,7 +141,7 @@ public class Display {
             }
         } else if (command.equals("reg") || command.equals("dereg")) {
             command += Parameters.COMMAND_SEPARATOR + Initialiser.local_address.getHostAddress() + ":" + ReceiverImpl.listenSocket.getLocalPort();
-            sender.sendMessage(command, true);
+            System.out.println(sender.sendMessage(command, true));
         } else if (command.equals("end")) {
             System.exit(0);
         } else if (command.equals("all")) {
