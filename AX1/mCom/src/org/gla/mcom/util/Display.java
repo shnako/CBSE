@@ -4,6 +4,7 @@
 package org.gla.mcom.util;
 
 import jlibs.core.lang.Ansi;
+import org.gla.mcom.Registry;
 import org.gla.mcom.Sender;
 import org.gla.mcom.impl.*;
 import org.gla.mcom.init.Initialiser;
@@ -125,11 +126,12 @@ public class Display {
         else if (command.equals("stop")) {
             Registrars.removeRegistrar(Initialiser.local_address.getHostAddress() + ":" + ReceiverImpl.listenSocket.getLocalPort());
 
-            String[] registeredClients = RegistryImpl.getRegistryInstance().lookup();
-            if (RegistryImpl.stopRegistrar()) {
+            Registry registry = RegistryImpl.getRegistryInstance();
+
+            if (registry != null && RegistryImpl.stopRegistrar()) {
                 sender.broadcastMessage(
                         "update_registrars" + Parameters.COMMAND_SEPARATOR + Registrars.getStringRepresentation(),
-                        Helpers.concatStringArrays(registeredClients, getAllInstances())
+                        Helpers.concatStringArrays(registry.lookup(), getAllInstances())
                 );
                 System.out.println("Registrar service stopped!");
             } else {
@@ -141,7 +143,7 @@ public class Display {
             try {
                 command += Parameters.COMMAND_SEPARATOR + Initialiser.local_address.getHostAddress() + ":" + ReceiverImpl.listenSocket.getLocalPort();
                 System.out.println(sender.sendMessage(command, true));
-            	
+
             } catch (Exception ex) {
                 System.out.println("Not connected to anyone!");
             }
@@ -193,14 +195,13 @@ public class Display {
         } else if (command.equals("end")) {
             System.exit(0);
         } else if (command.length() > 0) {
-        	try{
-        		sender = new SenderImpl();
+            try {
+                sender = new SenderImpl();
                 sender.sendMessage(command, true);
-        	}
-        	catch(Exception e){
-        		System.out.println("Not connected to anyone");
-        	}
-            
+            } catch (Exception e) {
+                System.out.println("Not connected to anyone");
+            }
+
         }
         console();
     }
