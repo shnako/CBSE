@@ -161,6 +161,7 @@ public class Display {
         if (RegistryImpl.isRegistrar()) {
             hosts.addAll(Helpers.arrayToArrayList((RegistryImpl.getRegistryInstance().lookup())));
         }
+        getreg();
         hosts.addAll(Registrars.getRegistrars());
 
         for (String registrar : Registrars.getRegistrars()) {
