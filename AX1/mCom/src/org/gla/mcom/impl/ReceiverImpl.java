@@ -84,11 +84,7 @@ public class ReceiverImpl implements Receiver {
         }
 
         private void getreg(DataOutputStream out) {
-            String result = "";
-
-            for (String ip_port : Registrars.getRegistrars()) {
-                result += ip_port + Parameters.ITEM_SEPARATOR;
-            }
+            String result = Helpers.setToString(Helpers.arrayToArrayList(Registrars.getRegistrars().toArray(new String[Registrars.getRegistrars().size()])));
 
             send(result, out);
             if (result.equals("")) {
