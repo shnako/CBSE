@@ -17,6 +17,7 @@ import java.util.Map.Entry;
 import java.util.Scanner;
 
 public class Display {
+    //region Supplied functionality
     public static final Ansi ansi_help = new Ansi(Ansi.Attribute.NORMAL, Ansi.Color.RED, null);
     public static final Ansi ansi_error = new Ansi(Ansi.Attribute.NORMAL, Ansi.Color.RED, null);
     public static final Ansi ansi_normal = new Ansi(Ansi.Attribute.NORMAL, Ansi.Color.RED, null);
@@ -38,172 +39,12 @@ public class Display {
         console();
     }
 
-    private static void initCommands() {//
-        commands.put("ipr" + Parameters.COMMAND_SEPARATOR + " <ipr>", "set ip address<hip> of message recipient");
-        commands.put("p" + Parameters.COMMAND_SEPARATOR + " <p>", "set listening port<p> of message recipient");
-        commands.put("<m>", "send message <m> to recipient");
-        commands.put("c" + Parameters.COMMAND_SEPARATOR + " <c>", "check if host with name <c> exist");
-        commands.put("end", "terminate");
-        commands.put("start", "start acting as a registrar");
-        commands.put("stop", "stop acting as a registrar");
-        commands.put("reg", "register the host with this registrar");
-        commands.put("dereg", "deregister the host with this registrar");
-        commands.put("getreg", "get the list of available registrars");
-        commands.put("lookup", "retrieve a list of all the hosts registered with this registrar");
-        commands.put("bc" + Parameters.COMMAND_SEPARATOR + " <m>", "send message <m> to everyone registered");
-        commands.put("all", "show all");
-    }
-
     @SuppressWarnings("resource")
     private static void console() {
         System.out.println(ansi_console.colorize("\ncom(" + Initialiser.local_address.getHostAddress() + ")>>"));
         Scanner scanner = new Scanner(System.in);
         String command = scanner.nextLine();
         execute(command);
-    }
-
-    private static void execute(String command) {
-        if (command.equals("?")) {
-            printCommands();
-        } else if (command.contains(Parameters.COMMAND_SEPARATOR)) {
-            int delimiterIndex = command.indexOf(Parameters.COMMAND_SEPARATOR);
-            if (delimiterIndex == command.length() - 1) {
-                System.out.println(ansi_error.colorize("ERROR:Invalid format"));
-            } else {
-                String operation = command.substring(0, delimiterIndex);
-                String value = command.substring(delimiterIndex + 1);
-                if (operation.equals("ipr")) {
-                    Initialiser.receiver_ip = value;
-                } else if (operation.equals("p")) {
-                    if (Initialiser.receiver_ip == null) {
-                        System.out.println(ansi_error.colorize("ERROR:receiver not set"));
-                    } else {
-                        if (isNumeric(value)) {
-                            //person we are talking to's listening port - where we are sending it
-                            Initialiser.receiver_listening_port = new Integer(value);
-                            sender = new SenderImpl();
-                            boolean connected = sender.makeConnection();
-                            if (!connected) {
-                                System.out.println(ansi_error.colorize("ERROR:connection failed"));
-                            }
-                        } else {
-                            System.out.println(ansi_error.colorize("ERROR:host port NaN"));
-                        }
-                    }
-                } else if (operation.equals("c")) {
-                    InetAddress address = IPResolver.getAddress(value);
-                    if (address != null) {
-                        System.out.println(ansi_normal2.colorize("check passed"));
-                        System.out.println(ansi_normal2.colorize("running on:" + address.getHostAddress()));
-                        System.out.println(ansi_normal2.colorize("DNS:" + address.getHostName()));
-                    } else {
-                        System.out.println(ansi_normal2.colorize("check failed"));
-                    }
-                } else if (operation.equals("bc")) {
-                    try {
-                        sender = new SenderImpl();
-                        String[] hosts = getAllInstances();
-                        sender.broadcastMessage(value, hosts);
-                        System.out.println("Successfully broadcast to " + hosts.length + " hosts.");
-                    } catch (Exception ex) {
-                        System.out.println("Could not broadcast: " + ex.getMessage());
-                    }
-                }
-            }
-        }
-        // startRegistrar
-        else if (command.equals("start")) {
-            if (RegistryImpl.startRegistrar()) {
-                Registrars.addRegistrar(Initialiser.local_address.getHostAddress() + ":" + ReceiverImpl.listenSocket.getLocalPort());
-                sender = new SenderImpl();
-                sender.broadcastMessage("update_registrars" + Parameters.COMMAND_SEPARATOR + Registrars.getStringRepresentation(), getAllInstances());
-                System.out.println("Registrar service started!");
-            } else {
-                System.out.println("Could not start registrar service! Is it already started?");
-            }
-        }
-        // stopRegistrar
-        else if (command.equals("stop")) {
-            Registrars.removeRegistrar(Initialiser.local_address.getHostAddress() + ":" + ReceiverImpl.listenSocket.getLocalPort());
-
-            Registry registry = RegistryImpl.getRegistryInstance();
-
-            if (registry != null && RegistryImpl.stopRegistrar()) {
-                sender.broadcastMessage(
-                        "update_registrars" + Parameters.COMMAND_SEPARATOR + Registrars.getStringRepresentation(),
-                        Helpers.concatStringArrays(registry.lookup(), getAllInstances())
-                );
-                System.out.println("Registrar service stopped!");
-            } else {
-                System.out.println("Could not stop registrar service! Is it already stopped?");
-            }
-        }
-        // reg and dereg
-        else if (command.equals("reg") || command.equals("dereg")) {
-            try {
-                command += Parameters.COMMAND_SEPARATOR + Initialiser.local_address.getHostAddress() + ":" + ReceiverImpl.listenSocket.getLocalPort();
-                System.out.println(sender.sendMessage(command, true));
-
-            } catch (Exception ex) {
-                System.out.println("Not connected to anyone!");
-            }
-        }
-        // getreg
-        else if (command.equals("getreg")) {
-            try {
-                Registrars.initializeRegistrars(sender.sendMessage("getreg", true).split(Parameters.ITEM_SEPARATOR));
-                if (Registrars.getRegistrarCount() != 0) {
-                    System.out.println("Got " + Registrars.getRegistrarCount() + " registrars:\r\n" + Registrars.getStringRepresentation());
-                } else {
-                    System.out.println("There are no registrars available!");
-                }
-            } catch (Exception ex) {
-                System.out.println("Not connected to anyone!");
-            }
-        }
-        // lookup
-        else if (command.equals("lookup")) {
-            try {
-                sender = new SenderImpl();
-                String response = sender.sendMessage(command, true);
-                if (response != null) {
-                    if (response.isEmpty()) {
-                        System.out.println("Lookup returned no results.");
-                    } else {
-                        System.out.println("Lookup results:\r\n" + response);
-                    }
-                }
-            } catch (Exception ex) {
-                System.out.println("Not connected to anyone!");
-            }
-        } else if (command.equals("all")) {
-            try {
-                String response = "";
-
-                for (String ip_port : getAllInstances()) {
-                    response += ip_port + Parameters.ITEM_SEPARATOR;
-                }
-
-                if (response.isEmpty()) {
-                    System.out.println("All hosts lookup returned no results.");
-                } else {
-                    System.out.println("All hosts lookup results:\r\n" + response);
-                }
-            } catch (Exception ex) {
-                System.out.println("Not connected to anyone!");
-            }
-        } else if (command.equals("end")) {
-            System.exit(0);
-        } else if (command.length() > 0) {
-            try {
-                sender = new SenderImpl();
-                sender.sendMessage(command, true);
-            } catch (Exception e) {
-                System.out.println("Not connected to anyone");
-            }
-
-        }
-        console();
     }
 
     @SuppressWarnings("rawtypes")
@@ -225,6 +66,95 @@ public class Display {
         return true;
     }
 
+    private static void connect(String value) {
+        if (Initialiser.receiver_ip == null) {
+            System.out.println(ansi_error.colorize("ERROR:receiver not set"));
+        } else {
+            if (isNumeric(value)) {
+                //person we are talking to's listening port - where we are sending it
+                Initialiser.receiver_listening_port = new Integer(value);
+                boolean connected = sender.makeConnection();
+                if (!connected) {
+                    System.out.println(ansi_error.colorize("ERROR:connection failed"));
+                }
+            } else {
+                System.out.println(ansi_error.colorize("ERROR:host port NaN"));
+            }
+        }
+    }
+
+    private static void checkHostExists(String value) {
+        InetAddress address = IPResolver.getAddress(value);
+        if (address != null) {
+            System.out.println(ansi_normal2.colorize("check passed"));
+            System.out.println(ansi_normal2.colorize("running on:" + address.getHostAddress()));
+            System.out.println(ansi_normal2.colorize("DNS:" + address.getHostName()));
+        } else {
+            System.out.println(ansi_normal2.colorize("check failed"));
+        }
+    }
+    //endregion
+
+    //region Display commands
+    private static void initCommands() {
+        commands.put("ipr" + Parameters.COMMAND_SEPARATOR + " <ipr>", "set ip address<hip> of message recipient");
+        commands.put("p" + Parameters.COMMAND_SEPARATOR + " <p>", "set listening port<p> of message recipient");
+        commands.put("<m>", "send message <m> to recipient");
+        commands.put("c" + Parameters.COMMAND_SEPARATOR + " <c>", "check if host with name <c> exist");
+        commands.put("end", "terminate");
+        commands.put("start", "start acting as a registrar");
+        commands.put("stop", "stop acting as a registrar");
+        commands.put("reg", "register the host with this registrar");
+        commands.put("dereg", "deregister the host with this registrar");
+        commands.put("getreg", "get the list of available registrars");
+        commands.put("lookup", "retrieve a list of all the hosts registered with this registrar");
+        commands.put("all", "show all available hosts");
+        commands.put("bc" + Parameters.COMMAND_SEPARATOR + " <m>", "send message <m> to everyone registered");
+    }
+    //endregion
+
+    private static void execute(String command) {
+        try {
+            sender = new SenderImpl();
+
+            // Process parameterless command.
+            if (command.equals("?")) printCommands();
+            else if (command.equals("start")) start();
+            else if (command.equals("stop")) stop();
+            else if (command.equals("reg") || command.equals("dereg")) regdereg(command);
+            else if (command.equals("getreg")) getreg();
+            else if (command.equals("lookup")) lookup(command);
+            else if (command.equals("all")) all();
+            else if (command.equals("end")) System.exit(0);
+            else if (command.contains(Parameters.COMMAND_SEPARATOR)) {
+                // Split the command into operation and value.
+                int delimiterIndex = command.indexOf(Parameters.COMMAND_SEPARATOR);
+                if (delimiterIndex == command.length() - 1) {
+                    throw new IllegalArgumentException();
+                }
+                String operation = command.substring(0, delimiterIndex);
+                String value = command.substring(delimiterIndex + 1);
+
+                // Process command with parameters.
+                if (operation.equals("ipr")) Initialiser.receiver_ip = value;
+                else if (operation.equals("p")) connect(value);
+                else if (operation.equals("c")) checkHostExists(value);
+                else if (operation.equals("bc")) broadcast(value);
+            } else if (command.length() > 0) {
+                sender.sendMessage(command, true);
+            }
+        } catch (NullPointerException ex) {
+            System.out.println("Not connected to anyone");
+        } catch (IllegalArgumentException ex) {
+            System.out.println(ansi_error.colorize("ERROR:Invalid format"));
+        } catch (Exception ex) {
+            System.out.println(ansi_error.colorize("ERROR: " + ex.getMessage()));
+        }
+
+        console();
+    }
+
+    //region AX1 Implementation
     private static String[] getAllInstances() {
         //noinspection unchecked
         HashSet<String> hosts = (HashSet<String>) Registrars.getRegistrars().clone();
@@ -238,6 +168,74 @@ public class Display {
                 hosts.addAll(Helpers.arrayToArrayList(response.split(Parameters.ITEM_SEPARATOR)));
             }
         }
+
         return Helpers.setToStringArray(hosts);
     }
+
+    private static void start() {
+        if (RegistryImpl.startRegistrar()) {
+            Registrars.addRegistrar(Initialiser.getLocalIpPort());
+            sender.broadcastMessage("update_registrars" + Parameters.COMMAND_SEPARATOR + Registrars.getStringRepresentation(), getAllInstances());
+            System.out.println("Registrar service started!");
+        } else {
+            System.out.println("Could not start registrar service! Is it already started?");
+        }
+    }
+
+    private static void stop() {
+        Registrars.removeRegistrar(Initialiser.getLocalIpPort());
+
+        Registry registry = RegistryImpl.getRegistryInstance();
+        if (registry != null && RegistryImpl.stopRegistrar()) {
+            sender.broadcastMessage(
+                    "update_registrars" + Parameters.COMMAND_SEPARATOR + Registrars.getStringRepresentation(),
+                    Helpers.concatStringArrays(registry.lookup(), getAllInstances())
+            );
+            System.out.println("Registrar service stopped!");
+        } else {
+            System.out.println("Could not stop registrar service! Is it already stopped?");
+        }
+    }
+
+    private static void regdereg(String command) {
+        command += Parameters.COMMAND_SEPARATOR + Initialiser.getLocalIpPort();
+        System.out.println(sender.sendMessage(command, true));
+    }
+
+    private static void getreg() {
+        Registrars.initializeRegistrars(sender.sendMessage("getreg", true).split(Parameters.ITEM_SEPARATOR));
+        if (Registrars.getRegistrarCount() != 0) {
+            System.out.println("Got " + Registrars.getRegistrarCount() + " registrars:\r\n" + Registrars.getStringRepresentation());
+        } else {
+            System.out.println("There are no registrars available!");
+        }
+    }
+
+    private static void lookup(String command) {
+        String response = sender.sendMessage(command, true);
+        if (response != null) {
+            if (response.isEmpty()) {
+                System.out.println("Lookup returned no results.");
+            } else {
+                System.out.println("Lookup results:\r\n" + response);
+            }
+        }
+    }
+
+    private static void all() {
+        String response = Helpers.setToString(Helpers.arrayToArrayList(getAllInstances()));
+
+        if (response.isEmpty()) {
+            System.out.println("All hosts lookup returned no results.");
+        } else {
+            System.out.println("All hosts lookup results:\r\n" + response);
+        }
+    }
+
+    private static void broadcast(String value) {
+        String[] hosts = getAllInstances();
+        sender.broadcastMessage(value, hosts);
+        System.out.println("Successfully broadcast to " + hosts.length + " hosts.");
+    }
+    //endregion
 }

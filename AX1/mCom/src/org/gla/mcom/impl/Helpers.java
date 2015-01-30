@@ -3,10 +3,10 @@ package org.gla.mcom.impl;
 import java.util.*;
 
 public class Helpers {
-    public static String setToString(Set<String> set) {
+    public static String setToString(AbstractCollection<String> collection) {
         String result = "";
 
-        for (String element : set) {
+        for (String element : collection) {
             result += element + Parameters.ITEM_SEPARATOR;
         }
 

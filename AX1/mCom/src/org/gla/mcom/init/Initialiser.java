@@ -36,4 +36,8 @@ public class Initialiser {
         receiver = new ReceiverImpl();
         receiver.receiveMessage();
     }
+
+    public static String getLocalIpPort() {
+        return Initialiser.local_address.getHostAddress() + ":" + ReceiverImpl.listenSocket.getLocalPort();
+    }
 }
