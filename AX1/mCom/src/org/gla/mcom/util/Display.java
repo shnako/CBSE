@@ -10,11 +10,8 @@ import org.gla.mcom.impl.*;
 import org.gla.mcom.init.Initialiser;
 
 import java.net.InetAddress;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Scanner;
 
 public class Display {
     //region Supplied functionality
@@ -31,7 +28,7 @@ public class Display {
         System.out.println(" ");
         System.out.println(ansi_header.colorize("________________TCPComponent__________________"));
         System.out.println(ansi_header.colorize("     Component message passing via sockets    "));
-        System.out.println(ansi_normal2.colorize("running on:" + Initialiser.local_address.getHostAddress()));
+        System.out.println(ansi_normal2.colorize("Running on:" + Initialiser.local_address.getHostAddress()));
         System.out.println(ansi_normal2.colorize("Listening port:" + ReceiverImpl.listenSocket.getLocalPort()));
         System.out.println(ansi_header.colorize("______________________________________________"));
         System.out.println(ansi_normal.colorize("Type ? for help                               "));
@@ -41,7 +38,7 @@ public class Display {
 
     @SuppressWarnings("resource")
     private static void console() {
-        System.out.println(ansi_console.colorize("\ncom(" + Initialiser.local_address.getHostAddress() + ")>>"));
+        System.out.println(ansi_console.colorize("com(" + Initialiser.local_address.getHostAddress() + ")>>"));
         Scanner scanner = new Scanner(System.in);
         String command = scanner.nextLine();
         execute(command);
@@ -97,8 +94,8 @@ public class Display {
 
     //region Display commands
     private static void initCommands() {
-        commands.put("ipr" + Parameters.COMMAND_SEPARATOR + " <ipr>", "set ip address<hip> of message recipient");
-        commands.put("p" + Parameters.COMMAND_SEPARATOR + " <p>", "set listening port<p> of message recipient");
+        commands.put("ipr" + Parameters.COMMAND_SEPARATOR + " <ipr>", "set ip address<hip> of tne message recipient");
+        commands.put("p" + Parameters.COMMAND_SEPARATOR + " <p>", "set listening port<p> of the message recipient");
         commands.put("<m>", "send message <m> to recipient");
         commands.put("c" + Parameters.COMMAND_SEPARATOR + " <c>", "check if host with name <c> exist");
         commands.put("end", "terminate");
@@ -107,7 +104,7 @@ public class Display {
         commands.put("reg", "register the host with this registrar");
         commands.put("dereg", "deregister the host with this registrar");
         commands.put("getreg", "get the list of available registrars");
-        commands.put("lookup", "retrieve a list of all the hosts registered with this registrar");
+        commands.put("lookup", "retrieve a list of all the clients registered with this registrar");
         commands.put("all", "show all available hosts");
         commands.put("bc" + Parameters.COMMAND_SEPARATOR + " <m>", "send message <m> to everyone registered");
     }
@@ -141,10 +138,10 @@ public class Display {
                 else if (operation.equals("c")) checkHostExists(value);
                 else if (operation.equals("bc")) broadcast(value);
             } else if (command.length() > 0) {
-                sender.sendMessage(command, true);
+                sender.sendMessage(command, true, true);
             }
         } catch (NullPointerException ex) {
-            System.out.println("Not connected to anyone");
+            System.out.println("Not connected to anyone!");
         } catch (IllegalArgumentException ex) {
             System.out.println(ansi_error.colorize("ERROR:Invalid format"));
         } catch (Exception ex) {
@@ -155,24 +152,25 @@ public class Display {
     }
 
     //region AX1 Implementation
-    private static String[] getAllInstances() {
-        //noinspection unchecked
-        HashSet<String> hosts = (HashSet<String>) Registrars.getRegistrars().clone();
-        if (RegistryImpl.isRegistrar()) {
-            hosts.addAll(Helpers.arrayToArrayList((RegistryImpl.getRegistryInstance().lookup())));
-        }
+    private static HashSet<String> getAllInstances() {
+        // Add all the available registrars.
         getreg(false);
+        HashSet<String> hosts = Registrars.getRegistrars();
 
-        hosts.addAll(Registrars.getRegistrars());
+        // Add locally registered clients if this is a registrar.
+        if (RegistryImpl.isRegistrar()) {
+            hosts.addAll(RegistryImpl.getRegistryInstance().lookup());
+        }
 
+        // Add each registrar's clients.
         for (String registrar : Registrars.getRegistrars()) {
-            String response = sender.sendMessage("lookup", true, registrar);
+            String response = sender.sendMessage("lookup", true, true, registrar);
             if (response != null && !response.isEmpty()) {
-                hosts.addAll(Helpers.arrayToArrayList(response.split(Parameters.ITEM_SEPARATOR)));
+                hosts.addAll(Arrays.asList(response.split(Parameters.ITEM_SEPARATOR)));
             }
         }
 
-        return Helpers.setToStringArray(hosts);
+        return hosts;
     }
 
     private static void start() {
@@ -190,10 +188,9 @@ public class Display {
 
         Registry registry = RegistryImpl.getRegistryInstance();
         if (registry != null && RegistryImpl.stopRegistrar()) {
-            sender.broadcastMessage(
-                    "update_registrars" + Parameters.COMMAND_SEPARATOR + Registrars.getStringRepresentation(),
-                    Helpers.concatStringArrays(registry.lookup(), getAllInstances())
-            );
+            HashSet<String> recipients = registry.lookup();
+            recipients.addAll(getAllInstances());
+            sender.broadcastMessage("update_registrars" + Parameters.COMMAND_SEPARATOR + Registrars.getStringRepresentation(), recipients);
             System.out.println("Registrar service stopped!");
         } else {
             System.out.println("Could not stop registrar service! Is it already stopped?");
@@ -202,20 +199,28 @@ public class Display {
 
     private static void regdereg(String command) {
         command += Parameters.COMMAND_SEPARATOR + Initialiser.getLocalIpPort();
-        System.out.println(sender.sendMessage(command, true));
+        String result = sender.sendMessage(command, true, true);
+        if (result != null) {
+            System.out.println(result);
+        }
     }
 
     private static void getreg(boolean showResult) {
-        Registrars.initializeRegistrars(sender.sendMessage("getreg", true).split(Parameters.ITEM_SEPARATOR));
-        if (Registrars.getRegistrarCount() != 0) {
-            System.out.println("Got " + Registrars.getRegistrarCount() + " registrars:\r\n" + Registrars.getStringRepresentation());
-        } else {
-            System.out.println("There are no registrars available!");
+        String registrars = sender.sendMessage("getreg", true, showResult);
+        if (registrars != null && !registrars.isEmpty()) {
+            Registrars.initializeRegistrars(registrars.split(Parameters.ITEM_SEPARATOR));
+            if (showResult) {
+                if (Registrars.getRegistrarCount() != 0) {
+                    System.out.println("Got " + Registrars.getRegistrarCount() + " registrars:\r\n" + Registrars.getStringRepresentation());
+                } else {
+                    System.out.println("There are no registrars available!");
+                }
+            }
         }
     }
 
     private static void lookup(String command) {
-        String response = sender.sendMessage(command, true);
+        String response = sender.sendMessage(command, true, true);
         if (response != null) {
             if (response.isEmpty()) {
                 System.out.println("Lookup returned no results.");
@@ -226,7 +231,7 @@ public class Display {
     }
 
     private static void all() {
-        String response = Helpers.setToString(Helpers.arrayToArrayList(getAllInstances()));
+        String response = Helpers.setToString(getAllInstances());
 
         if (response.isEmpty()) {
             System.out.println("All hosts lookup returned no results.");
@@ -236,9 +241,10 @@ public class Display {
     }
 
     private static void broadcast(String value) {
-        String[] hosts = getAllInstances();
+        HashSet<String> hosts = getAllInstances();
+        hosts.remove(Initialiser.getLocalIpPort());
         sender.broadcastMessage(value, hosts);
-        System.out.println("Successfully broadcast to " + hosts.length + " hosts.");
+        System.out.println("Successfully broadcast to " + hosts.size() + " hosts.");
     }
     //endregion
 }

@@ -15,6 +15,7 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.HashSet;
 
 public class ReceiverImpl implements Receiver {
     public static ServerSocket listenSocket;
@@ -35,7 +36,7 @@ public class ReceiverImpl implements Receiver {
                         // Process parameterless message.
                         if (r_message.equals("ping")) ping(clientSocket, out);
                         else if (r_message.equals("disconnect")) disconnect(clientSocket, out);
-                        else if (r_message.equals("lookup")) lookup(clientSocket, out);
+                        else if (r_message.equals("lookup")) lookup(out);
                         else if (r_message.equals("getreg")) getreg(out);
                         else if (r_message.contains(Parameters.COMMAND_SEPARATOR)) {
                             // Split the message into operation and value.
@@ -50,8 +51,8 @@ public class ReceiverImpl implements Receiver {
                             if (operation.equals("reg")) reg(out, value);
                             else if (operation.equals("dereg")) dereg(out, value);
                             else if (operation.equals("update_registrars")) update_registrars(value);
-                            else System.out.println(Display.ansi_normal.colorize("[" + getClientSocketString(clientSocket) + "]" + r_message));
-                        }
+                        } else
+                            System.out.println(Display.ansi_normal.colorize("[" + getClientSocketString(clientSocket) + "]" + r_message));
                     } finally {
                         closeConnection(clientSocket);
                     }
@@ -64,32 +65,24 @@ public class ReceiverImpl implements Receiver {
         }
 
         //region AX1 Implementation
-        private void lookup(Socket clientSocket, DataOutputStream out) {
+        private void lookup(DataOutputStream out) {
             Registry registry = RegistryImpl.getRegistryInstance();
             if (registry == null) {
                 send("This is not a registrar!", out);
             } else {
-                String[] registryHosts = registry.lookup();
-
-                String result = "";
-
-                for (String ip_port : registryHosts) {
-                    result += ip_port + Parameters.ITEM_SEPARATOR;
-                }
-
-                send(result, out);
-                System.out.println("Lookup returned " + registryHosts.length + " hosts.");
+                HashSet<String> registryHosts = registry.lookup();
+                send(Helpers.setToString(registryHosts), out);
+                System.out.println("Lookup returned " + registryHosts.size() + " hosts.");
             }
         }
 
         private void getreg(DataOutputStream out) {
-            String result = Helpers.setToString(Helpers.arrayToArrayList(Registrars.getRegistrars().toArray(new String[Registrars.getRegistrars().size()])));
-
+            String result = Registrars.getStringRepresentation();
             send(result, out);
             if (result.equals("")) {
                 System.out.println("No registered Registrars");
             } else {
-                System.out.println("Returned registrars: " + result);
+                System.out.println("Returned " + result.split(Parameters.ITEM_SEPARATOR).length + " registrars.");
             }
         }
 

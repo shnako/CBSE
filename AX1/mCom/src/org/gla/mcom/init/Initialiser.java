@@ -40,4 +40,12 @@ public class Initialiser {
     public static String getLocalIpPort() {
         return Initialiser.local_address.getHostAddress() + ":" + ReceiverImpl.listenSocket.getLocalPort();
     }
+
+    public static String getConnectedHostIpPort() {
+        return Initialiser.receiver_ip + ":" + Initialiser.receiver_listening_port;
+    }
+
+    public static boolean isLocalAddress(String ip, int port) {
+        return getLocalIpPort().equals(ip.replace("/", "") + ":" + port);
+    }
 }

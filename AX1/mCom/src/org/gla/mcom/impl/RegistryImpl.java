@@ -42,16 +42,10 @@ public class RegistryImpl implements Registry {
     }
 
     @Override
-    public String[] lookup() {
-        String[] result = new String[ip_ports.size()];
-
-        int i = 0;
-        for (String ip_port : ip_ports) {
-            result[i++] = ip_port;
-        }
-
-        return result;
-    }
+    public HashSet<String> lookup() {
+        // Send a cloned object to ensure the integrity of the stored one.
+        //noinspection unchecked
+        return (HashSet<String>) ip_ports.clone(); }
 
     @Override
     public boolean register(String ip_port) {
