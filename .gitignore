@@ -1,5 +1,6 @@
 *.class
 /bin/
+/out/
 
 # Eclipse and IntelliJ specifics
 .classpath
@@ -9,14 +10,14 @@
 .metadata/
 *.iml
 
-.recommenders/
+/.recommenders/
 
 *~
 
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
 
-# Package Files #
+# Package Files
 *.jar
 *.war
 *.ear
