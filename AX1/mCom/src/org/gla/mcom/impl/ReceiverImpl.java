@@ -80,7 +80,6 @@ public class ReceiverImpl implements Receiver {
                 send(result, out);
                 System.out.println("Lookup returned " + registryHosts.length + " hosts.");
             }
-            closeConnection(clientSocket);
         }
 
         private void getreg(DataOutputStream out) {
@@ -147,18 +146,15 @@ public class ReceiverImpl implements Receiver {
             if (accepted) {
                 response = "accepted";
                 send(response, out);
-                closeConnection(clientSocket);
             } else {
                 response = "rejected";
                 send(response, out);
-                closeConnection(clientSocket);
             }
         }
 
         private void disconnect(Socket clientSocket, DataOutputStream out) {
             System.out.println(Display.ansi_normal2.colorize("disconnecting " + getClientSocketString(clientSocket)));
             send("" + getClientSocketString(clientSocket) + " disconnected", out);
-            closeConnection(clientSocket);
         }
 
         private boolean acceptPing(Socket clientSocket) { //broadcasting own address
