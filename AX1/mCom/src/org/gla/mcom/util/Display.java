@@ -122,7 +122,7 @@ public class Display {
             else if (command.equals("start")) start();
             else if (command.equals("stop")) stop();
             else if (command.equals("reg") || command.equals("dereg")) regdereg(command);
-            else if (command.equals("getreg")) getreg();
+            else if (command.equals("getreg")) getreg(true);
             else if (command.equals("lookup")) lookup(command);
             else if (command.equals("all")) all();
             else if (command.equals("end")) System.exit(0);
@@ -161,7 +161,8 @@ public class Display {
         if (RegistryImpl.isRegistrar()) {
             hosts.addAll(Helpers.arrayToArrayList((RegistryImpl.getRegistryInstance().lookup())));
         }
-        getreg();
+        getreg(false);
+
         hosts.addAll(Registrars.getRegistrars());
 
         for (String registrar : Registrars.getRegistrars()) {
@@ -204,7 +205,7 @@ public class Display {
         System.out.println(sender.sendMessage(command, true));
     }
 
-    private static void getreg() {
+    private static void getreg(boolean showResult) {
         Registrars.initializeRegistrars(sender.sendMessage("getreg", true).split(Parameters.ITEM_SEPARATOR));
         if (Registrars.getRegistrarCount() != 0) {
             System.out.println("Got " + Registrars.getRegistrarCount() + " registrars:\r\n" + Registrars.getStringRepresentation());
