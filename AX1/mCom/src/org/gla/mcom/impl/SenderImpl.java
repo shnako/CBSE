@@ -105,7 +105,9 @@ public class SenderImpl implements Sender {
 		for (String client : clients) {
 			if(!client.isEmpty() && !client.equals(Initialiser.local_address.toString() + ":" + Initialiser.receiver_listening_port)){
 				int separatorIndex = client.lastIndexOf(":");
-				sendMessage(message, false, client.substring(0, separatorIndex), Integer.parseInt(client.substring(separatorIndex + 1)));
+				if (separatorIndex > -1) {
+					sendMessage(message, false, client.substring(0, separatorIndex), Integer.parseInt(client.substring(separatorIndex + 1)));
+				}
 			}
 		}
 
