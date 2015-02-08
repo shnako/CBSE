@@ -26,7 +26,7 @@ public class Display {
 	public static final Ansi ansi_header = new Ansi(Ansi.Attribute.NORMAL, Ansi.Color.BLUE, null);
 	public static final Ansi ansi_normal2 = new Ansi(Ansi.Attribute.NORMAL, Ansi.Color.GREEN, null);
 	public static final Ansi ansi_console = new Ansi(Ansi.Attribute.NORMAL, Ansi.Color.BLUE, null);
-	
+	public static Scanner scanner;
 	public Display(){
 		System.out.println(" ");
     	System.out.println(ansi_header.colorize("_________________mCom-1.0.1________________"));
@@ -40,7 +40,7 @@ public class Display {
 	}
 	
 	private static void initCommands(){//
-		commands.put("isReg%<bool>", "Switch registrar on/off");
+		commands.put("isreg%<bool>", "Switch registrar on/off");
 		commands.put("drs", "execute dynamic registrar discovery");
 		commands.put("reg", "show available registrars");
 		commands.put("deploy", "deploys all bundles in LocalBundleDir directory");
@@ -53,14 +53,12 @@ public class Display {
 		commands.put("end", "terminate");
 	}
 	
-	@SuppressWarnings("resource")
 	private static void console(){
     	//System.out.println(ansi_console.colorize  ("\ncom("+Initialiser.local_address.getHostAddress()+")>>"));
 
-		Scanner scanner = new Scanner(System.in);
+		scanner = new Scanner(System.in);
 		String command = scanner.nextLine();
-		
-		execute(command);
+		execute(command);		
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -77,7 +75,7 @@ public class Display {
 				String operation = c[0];
 				String value = c[1];
 				
-				if(operation.equals("isReg")){
+				if(operation.equals("isreg")){
 					if(value.equalsIgnoreCase("true")){
 						Initialiser.reg_ser = new RegistrarService();
 						Initialiser.reg_ser.startRegistrarService();						

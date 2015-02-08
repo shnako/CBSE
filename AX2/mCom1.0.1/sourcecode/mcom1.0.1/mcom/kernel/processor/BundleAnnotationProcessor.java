@@ -5,9 +5,9 @@ package mcom.kernel.processor;
  * 1. The BundleController class - the class contains mBundleController annotation
  * 2. The BundleControllerInit method - the class contains mBundleControllerInit method annotation
  * 3. Contract methods - the class contains one or more contract
- * @see: b_process
+ * @see b_process
  * 
- * @Author: Inah Omoronyia School of Computing Science, University of Glasgow
+ * @Author Inah Omoronyia School of Computing Science, University of Glasgow 
  */
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;

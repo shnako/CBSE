@@ -3,12 +3,14 @@ package mcom.kernel.util;
  * @Author Inah Omoronyia School of Computing Science, University of Glasgow 
  */
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.io.StringWriter;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.net.InetAddress;
@@ -16,12 +18,16 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
@@ -29,6 +35,8 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import org.apache.commons.lang3.StringUtils;
+import org.dom4j.DocumentHelper;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -68,6 +76,168 @@ public class KernelUtil {
 		}
 	}
 	
+	public static Document decodeTextToXml(String dtText){
+		Document doc = null;
+		try {
+			DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+			DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+			
+			//doc = dBuilder.parse(dtText);
+			doc = dBuilder.parse(new InputSource(new ByteArrayInputStream(dtText.getBytes("utf-8"))));
+			doc.getDocumentElement().normalize();
+			
+		} catch (ParserConfigurationException e) {
+			e.printStackTrace();
+		} catch (SAXException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return doc;
+	}
+	
+	public static int retrieveBundleId(Document doc){
+		String bundleId = doc.getElementsByTagName("BundleId").item(0).getTextContent();
+		
+		return new Integer(bundleId.trim());
+	}
+	
+	public static ArrayList<String> retrieveContractNames(Document doc){
+		ArrayList<String> cnames = new ArrayList<String>();
+		System.out.println(getBDString(doc));
+		
+		NodeList nList = doc.getElementsByTagName("Contract");
+		for (int temp = 0; temp < nList.getLength(); temp++) {
+			
+			Node nNode = nList.item(temp);			 
+			if (nNode.getNodeType() == Node.ELEMENT_NODE) {
+				Element eElement = (Element) nNode;
+				//TODO: BUG FIX - prevent multiple contracts with the same contractName in a bundle (See:BundleAnnotationProcessor)
+				String sBundleEntityContract = eElement.getElementsByTagName("BundleEntityContract").item(0).getTextContent();
+				cnames.add(sBundleEntityContract);				
+			}
+	 	}
+		
+		return cnames;
+	}
+	
+	public static HashMap<Object, Object> retrieveParameters(Document doc, String contractName) {
+		HashMap<Object, Object> parameters = new HashMap<Object,Object>();
+		
+		NodeList nList = doc.getElementsByTagName("Contract");
+		for (int temp = 0; temp < nList.getLength(); temp++) {			
+			Node nNode = nList.item(temp);			 
+			if (nNode.getNodeType() == Node.ELEMENT_NODE) {
+				Element eElement = (Element) nNode;
+				//TODO: BUG FIX - prevent multiple contracts with the same contractName in a bundle (See:BundleAnnotationProcessor)
+				String sBundleEntityContract = eElement.getElementsByTagName("BundleEntityContract").item(0).getTextContent();
+				
+				if(sBundleEntityContract.equals(contractName))	{
+					NodeList npList = eElement.getElementsByTagName("Parameter");
+					for (int temp1 = 0; temp1 < npList.getLength(); temp1++) {			
+						Node npNode = npList.item(temp1);			 
+						
+						if (nNode.getNodeType() == Node.ELEMENT_NODE) {
+							Element epElement = (Element) npNode;
+							String pName = epElement.getElementsByTagName("Name").item(0).getTextContent();
+							String pValue = epElement.getElementsByTagName("Value").item(0).getTextContent();
+							
+							parameters.put(pName, pValue);
+						}
+					}					
+					break;
+				}
+			}
+	 	}		
+		return parameters;
+	}
+	
+	@SuppressWarnings("rawtypes")
+	public static BundleDescriptor loadBundleDescriptor(String bundleId) {
+		BundleDescriptor bd = null;
+		File folder = new File(KernelConstants.BUNDLEDESCRIPTORDIR);
+		File[] listOfFiles = folder.listFiles();
+
+		for(File file: listOfFiles){
+			try {
+				DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+				DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+				
+				//InputStream is = checkForUtf8BOMAndDiscardIfAny(new FileInputStream(file));
+				InputStream is = new FileInputStream(file);
+				Reader reader = new InputStreamReader(is, "UTF-8");
+				InputSource source = new InputSource(reader);
+				Document doc = dBuilder.parse(source);
+				
+				doc.getDocumentElement().normalize();
+
+
+				String BundleId = doc.getElementsByTagName("BundleId").item(0).getTextContent();
+				boolean found = false;
+				
+				if(BundleId.equals(bundleId)){
+					found = true;
+					bd = new BundleDescriptor();				
+
+					String bundleName = doc.getElementsByTagName("BundleName").item(0).getTextContent();
+					bd.setBundleName(bundleName);
+					
+					bd.setBundleId(new Integer(BundleId));
+							
+					String hostAddress = doc.getElementsByTagName("HostAddress").item(0).getTextContent();
+					InetAddress inaddress = IPResolver.getAddress(hostAddress);
+					bd.setAddress(inaddress);
+					
+					String hostPort = doc.getElementsByTagName("HostPort").item(0).getTextContent();
+					bd.setPort(new Integer(hostPort));
+					
+					String sbundleController = doc.getElementsByTagName("BundleController").item(0).getTextContent();
+					Class bundleController = getmClass(sbundleController);
+					bd.setBundleController(bundleController);
+					
+					String sbundleControllerInit = doc.getElementsByTagName("BundleControllerInit").item(0).getTextContent();
+					bMethod bundleControllerInit = getbControllerInit(bundleController,sbundleControllerInit);
+					bd.setBundleControllerInit(bundleControllerInit);
+					
+					NodeList nList = doc.getElementsByTagName("Contracts");
+					for (int temp = 0; temp < nList.getLength(); temp++) {
+						
+						Node nNode = nList.item(temp);			 
+						if (nNode.getNodeType() == Node.ELEMENT_NODE) {
+							Element eElement = (Element) nNode;
+							String sbundleEntity = eElement.getElementsByTagName("BundleEntity").item(0).getTextContent();
+							Class bundleEntity = getmClass(sbundleEntity);
+							
+							ArrayList<Contract> contracts = getbBundleEntityContracts(bundleEntity);
+							for(Contract contract:contracts){
+								bd.addContract(contract);
+							}
+						}
+				 	}
+				}
+				
+				if(found){
+					break;
+				}
+				
+			} 
+			catch (IOException i) {
+				i.printStackTrace();
+			} 
+			catch (ParserConfigurationException e) {
+				e.printStackTrace();
+			} 
+			catch(SAXParseException e){
+				//
+			}
+			catch (SAXException e) {
+				e.printStackTrace();
+			}	
+			
+		}
+		return bd;
+	}
+		
 	@SuppressWarnings("rawtypes")
 	public static BundleDescriptor[] loadBundleDescriptors() {
 		BundleDescriptor [] bds = new BundleDescriptor[0];		
@@ -279,6 +449,105 @@ public class KernelUtil {
 		return contracts;		
 	}
 	
+	@SuppressWarnings("rawtypes")
+	public static Document encodeRemoteCallAsxml(String bhip, int bhport, int bid, String cName, HashMap<String,String> parameters){
+		Document doc = null;
+		
+		try {
+			DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
+			DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
+			
+			// root elements
+			doc = docBuilder.newDocument();
+			Element rootElement = doc.createElement("InvokeRequest");
+			doc.appendChild(rootElement);
+			
+			Element bhhostIp = doc.createElement("BundleHostIP");
+			bhhostIp.appendChild(doc.createTextNode(bhip));				
+			rootElement.appendChild(bhhostIp);
+
+			Element bhhostPort = doc.createElement("BundleHostPort");
+			bhhostPort.appendChild(doc.createTextNode(""+bhport));				
+			rootElement.appendChild(bhhostPort);
+
+			Element bundleId = doc.createElement("BundleId");
+			bundleId.appendChild(doc.createTextNode(""+bid));
+			rootElement.appendChild(bundleId);
+			
+			Element contract = doc.createElement("Contract");
+			rootElement.appendChild(contract);
+			
+			Element contractName = doc.createElement("ContractName");
+			contractName.appendChild(doc.createTextNode(""+cName));
+			contract.appendChild(contractName);
+			
+			Element xparameters= doc.createElement("Parameters");
+			Iterator it = parameters.entrySet().iterator();
+		    while (it.hasNext()) {
+		        Map.Entry pairs = (Map.Entry)it.next();
+		        String pName = (String)pairs.getKey();
+		        String pValue = (String)pairs.getValue();
+		        
+		        Element xparameter= doc.createElement("Parameter");
+				
+				Element xname = doc.createElement("Type");
+				xname.appendChild(doc.createTextNode(pName));
+				xparameter.appendChild(xname);
+				
+				Element xvalue = doc.createElement("Value");
+				xvalue.appendChild(doc.createTextNode(pValue));
+				xparameter.appendChild(xvalue);
+				
+				xparameters.appendChild(xparameter);
+		    }	
+		    contract.appendChild(xparameters);
+		} catch (ParserConfigurationException e) {
+			e.printStackTrace();
+		} 
+		
+		return doc;
+	}	
+		
+	public static String getBDString(Document doc ) {
+		String output = "";
+		
+		try {
+			TransformerFactory tf = TransformerFactory.newInstance();
+			Transformer transformer = tf.newTransformer();
+			transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+			StringWriter writer = new StringWriter();
+			transformer.transform(new DOMSource(doc), new StreamResult(writer));
+			output = writer.getBuffer().toString().replaceAll("\n|\r", "");
+			
+		} catch (TransformerConfigurationException e) {
+			e.printStackTrace();
+		} catch (TransformerException e) {
+			e.printStackTrace();
+		}		
+		return output;
+	}
+	
+
+	public static String prettyPrint(final String xml){  
+
+	    if (StringUtils.isBlank(xml)) {
+	        throw new RuntimeException("xml was null or blank in prettyPrint()");
+	    }
+
+	    final StringWriter sw;
+
+	    try {
+	        final org.dom4j.io.OutputFormat format = org.dom4j.io.OutputFormat.createPrettyPrint();
+	        final org.dom4j.Document document = DocumentHelper.parseText(xml);
+	        sw = new StringWriter();
+	        final org.dom4j.io.XMLWriter writer = new org.dom4j.io.XMLWriter(sw, format);
+	        writer.write(document);
+	    }
+	    catch (Exception e) {
+	        throw new RuntimeException("Error pretty printing xml:\n" + xml, e);
+	    }
+	    return sw.toString();
+	}
 //	private static InputStream checkForUtf8BOMAndDiscardIfAny(InputStream inputStream) throws IOException {
 //	    PushbackInputStream pushbackInputStream = new PushbackInputStream(new BufferedInputStream(inputStream), 3);
 //	    byte[] bom = new byte[3];

@@ -16,19 +16,17 @@ public class RemoteLookupService {
 		lookedUpAdverts = new HashMap<String, String>();
 		
 		//lookup on all known Registers
-		String message = "LOOKUP_ADVERTS:"+Initialiser.local_address.getHostAddress()+":"+ReceiverImpl.listenSocket.getLocalPort();
+		String message = "LOOKUPADVERTS-"+Initialiser.local_address.getHostAddress()+"__"+ReceiverImpl.listenSocket.getLocalPort();
 		if(DynamicRegistrarDiscovery.getActiveRegistrars() == null || DynamicRegistrarDiscovery.getActiveRegistrars().size() ==0){
 			System.err.println("No known Registrar");
 		}
 		else{
 			for(String regip_port:DynamicRegistrarDiscovery.getActiveRegistrars()){
-				String [] res = regip_port.split(":");
+				String [] res = regip_port.split("__");
 				String serviceip = res[0];
 				String serviceport = res[1];
 				new SenderImpl().sendMessage(serviceip, new Integer(serviceport), message);	
-
 			}
-			
 		}
 	}
 	

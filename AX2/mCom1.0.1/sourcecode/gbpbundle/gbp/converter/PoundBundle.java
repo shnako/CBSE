@@ -15,11 +15,10 @@ import com.tunyk.currencyconverter.api.CurrencyConverterException;
 @mEntity
 public class PoundBundle {
 	//test1:returns the current value in pound for any supported currency.	 
-	static final String supportedCurrencies  = "CURRENCY: UAH,AUD,AZM,GBP,BYR,DKK,USD,EUR,NOK,CHF,CNY,JPY";
+	static final String supportedCurrencies  = "CURRENCY: UAH,AUD,GBP,BYR,DKK,USD,EUR,NOK,CHF,CNY,JPY";
 	@mEntityContract(description=supportedCurrencies, contractType = ContractType.GET)	
 	@mControllerInit
-	public static Float convertPound(String c_type, double amount, int it){
-		
+	public static Float convertPound(String c_type){		
 		try {
 			CurrencyConverter currencyConverter = new BankUaCom(Currency.GBP, Currency.EUR);
 			Float value = currencyConverter.convertCurrency(1f, Currency.EUR, Currency.valueOf(c_type));
@@ -27,9 +26,12 @@ public class PoundBundle {
 		} 
 		catch (CurrencyConverterException e) {
 			e.printStackTrace();
-		}
-		
+		}		
 		return null;
+	}
+	
+	public static void main(String [] args){
+		
 	}
 	
 }

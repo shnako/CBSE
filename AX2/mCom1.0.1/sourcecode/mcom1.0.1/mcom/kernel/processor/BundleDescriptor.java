@@ -22,9 +22,8 @@ import javax.xml.transform.stream.StreamResult;
 
 import mcom.bundle.Contract;
 import mcom.bundle.util.bMethod;
+import mcom.kernel.util.KernelUtil;
 
-import org.apache.commons.lang3.StringUtils;
-import org.dom4j.DocumentHelper;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -151,9 +150,28 @@ public class BundleDescriptor implements Serializable {
 		} catch (TransformerException e) {
 			e.printStackTrace();
 		}		
-		return prettyPrint(output);
+		return KernelUtil.prettyPrint(output);
 	}
-	
+	public String getBDString() {
+		Document doc = encodeasxml();
+		String output = "";
+		
+		try {
+			TransformerFactory tf = TransformerFactory.newInstance();
+			Transformer transformer = tf.newTransformer();
+			transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+			StringWriter writer = new StringWriter();
+			transformer.transform(new DOMSource(doc), new StreamResult(writer));
+			output = writer.getBuffer().toString().replaceAll("\n|\r", "");
+			
+		} catch (TransformerConfigurationException e) {
+			e.printStackTrace();
+		} catch (TransformerException e) {
+			e.printStackTrace();
+		}		
+		return output;
+	}
+		
 	public  Document encodeasxml(){
 		Document doc = null;
 		try {
@@ -207,24 +225,5 @@ public class BundleDescriptor implements Serializable {
 		return doc;
 	}	
 	
-	private String prettyPrint(final String xml){  
 
-	    if (StringUtils.isBlank(xml)) {
-	        throw new RuntimeException("xml was null or blank in prettyPrint()");
-	    }
-
-	    final StringWriter sw;
-
-	    try {
-	        final org.dom4j.io.OutputFormat format = org.dom4j.io.OutputFormat.createPrettyPrint();
-	        final org.dom4j.Document document = DocumentHelper.parseText(xml);
-	        sw = new StringWriter();
-	        final org.dom4j.io.XMLWriter writer = new org.dom4j.io.XMLWriter(sw, format);
-	        writer.write(document);
-	    }
-	    catch (Exception e) {
-	        throw new RuntimeException("Error pretty printing xml:\n" + xml, e);
-	    }
-	    return sw.toString();
-	}
 }

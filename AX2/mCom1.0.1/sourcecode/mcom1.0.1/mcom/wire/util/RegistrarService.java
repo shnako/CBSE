@@ -5,6 +5,7 @@ package mcom.wire.util;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
+import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.net.UnknownHostException;
@@ -26,7 +27,12 @@ public class RegistrarService {
 		registedAdverts = new HashMap<String, String>();
 		InetAddress multicastAddressGroup;
 		try {
-			multicastAddressGroup = InetAddress.getByName(RegistrarConstants.MULTICAST_ADDRESS_GROUP);
+			if(Initialiser.local_address instanceof Inet6Address){
+				multicastAddressGroup = InetAddress.getByName(RegistrarConstants.MULTICAST_ADDRESS_GROUP_IPV6);				
+			}
+			else{
+				multicastAddressGroup = InetAddress.getByName(RegistrarConstants.MULTICAST_ADDRESS_GROUP_IPV4);
+			}
 			int multicastPort = RegistrarConstants.MULTICAST_PORT;
 			
 			socket = new MulticastSocket(multicastPort);
@@ -74,11 +80,12 @@ public class RegistrarService {
 
 					if(recStr.startsWith("REGPING")){
 						//respond to request							
-						String [] res = recStr.split(":");
-						String serviceip = res[1].trim();
-						String serviceport = res[2].trim();
+						String [] res0 = recStr.split("REGPING-");
+						String [] res = res0[1].split("__");
+						String serviceip = res[0].trim();
+						String serviceport = res[1].trim();
 
-						String resStr = "REGACCEPT:"+Initialiser.local_address.getHostAddress()+":"+ReceiverImpl.listenSocket.getLocalPort();							
+						String resStr = "REGACCEPT-"+Initialiser.local_address.getHostAddress()+"__"+ReceiverImpl.listenSocket.getLocalPort();							
 						new SenderImpl().sendMessage(serviceip, new Integer(serviceport), resStr);														
 					}					
 				}

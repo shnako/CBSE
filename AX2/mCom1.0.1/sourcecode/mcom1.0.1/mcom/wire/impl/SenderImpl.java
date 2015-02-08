@@ -10,7 +10,10 @@ import java.io.*;
 
 import mcom.console.Display;
 import mcom.init.Initialiser;
+import mcom.kernel.util.KernelUtil;
 import mcom.wire.Sender;
+import mcom.wire.util.DynamicRegistrarDiscovery;
+import mcom.wire.util.RegistrarService;
 import mcom.wire.util.RemoteLookupService;
 
 public class SenderImpl implements Sender{
@@ -35,7 +38,7 @@ public class SenderImpl implements Sender{
 				else if(r_message.equals("accepted")){
 					accepted = true;
 				}
-				System.out.println(Display.ansi_normal2.colorize("connection to "+Initialiser.receiver_ip+":"+Initialiser.receiver_listening_port+" "+r_message));
+				System.out.println(Display.ansi_normal2.colorize("connection to "+Initialiser.receiver_ip+"__"+Initialiser.receiver_listening_port+" "+r_message));
 				
 			}			
 			serverSocket.close();
@@ -56,7 +59,7 @@ public class SenderImpl implements Sender{
 	public boolean sendMessage(String ip, int port, String message) {
 		boolean ack = false;
 		try {
-			//System.out.println("initiating connection to "+ip+":"+port+")");
+			//System.out.println("initiating connection to "+ip+"__"+port+")");
 			Socket serverSocket = new Socket(ip,port);
 			DataInputStream in = new DataInputStream(serverSocket.getInputStream());
 			DataOutputStream out = new DataOutputStream(serverSocket.getOutputStream());
@@ -66,11 +69,29 @@ public class SenderImpl implements Sender{
 			if(message != null){
 				if(r_message.contains("ack")){
 					ack = true;
-					System.out.println(Display.ansi_normal2.colorize(Initialiser.receiver_ip+":"+Initialiser.receiver_listening_port+" "+r_message));
+					System.out.println(Display.ansi_normal2.colorize(Initialiser.receiver_ip+"__"+Initialiser.receiver_listening_port+" "+r_message));
 				}
-				else if(r_message.contains("LOOKUP_RESPONSE_HEADER:")){
-					String [] s1 = r_message.split("LOOKUP_RESPONSE_HEADER:");
-					String [] s2 = s1[1].split("LOOKUP_RESPONSE_BODY:");
+				else if(r_message.startsWith("REGACCEPT")){
+					String [] res = r_message.split("REGACCEPT-");
+					String regip_port = res[1];
+					DynamicRegistrarDiscovery.addActiveRegistrar(regip_port);					
+				}
+				
+				else if(r_message.startsWith("ADVERTHEADER-")){
+					
+					String [] res = r_message.split("ADVERTBODY-");
+					String part0 = res[0];
+					String body = res[1];
+					
+					String []res1 = part0.split("ADVERTHEADER-");
+					String header = res1[1];
+					
+					RegistrarService.addAdvert(header, body);
+					
+				}
+				else if(r_message.contains("LOOKUPRESPONSEHEADER-")){
+					String [] s1 = r_message.split("LOOKUPRESPONSEHEADER-");
+					String [] s2 = s1[1].split("LOOKUPRESPONSEBODY-");
 					String header = s2[0];
 					String body = s2[1];
 					
@@ -78,6 +99,18 @@ public class SenderImpl implements Sender{
 					System.out.println("Lookup response:");
 					System.out.println("ContractHost: "+header.trim());
 					System.out.println(body.trim());
+				}
+
+				else if(r_message.contains("INVOKERRESPONSEHEADER-")){ //invocation client
+					String dr [] = r_message.split("INVOKERRESPONSEHEADER-FROM-");
+					String d1 = dr[1];
+					String d2 [] = d1.split("INVOKERESPONSEBODY-");
+					//String fromtoipport = d2[0];
+					String responsebody = d2[1];
+					
+					//print response body
+					System.out.println(KernelUtil.prettyPrint(responsebody));
+
 				}
 				
 			}			

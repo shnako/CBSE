@@ -5,6 +5,7 @@ package mcom.wire.util;
  */
 import java.io.IOException;
 import java.net.DatagramPacket;
+import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.util.ArrayList;
@@ -36,12 +37,20 @@ public class DynamicRegistrarDiscovery {
 	class DynamicRegistrarDiscoveryRunner implements Runnable {
 		public void run() {
 			try {
-				InetAddress multicastAddressGroup = InetAddress.getByName(RegistrarConstants.MULTICAST_ADDRESS_GROUP);
+				InetAddress multicastAddressGroup = null;
+				
+				if(Initialiser.local_address instanceof Inet6Address){
+					multicastAddressGroup = InetAddress.getByName(RegistrarConstants.MULTICAST_ADDRESS_GROUP_IPV6);				
+				}
+				else{
+					multicastAddressGroup = InetAddress.getByName(RegistrarConstants.MULTICAST_ADDRESS_GROUP_IPV4);
+				}
+				
 				int multicastPort = RegistrarConstants.MULTICAST_PORT;
 				
 				MulticastSocket socket = new MulticastSocket(multicastPort);
 				
-				String msg = "REGPING:"+Initialiser.local_address.getHostAddress()+":"+ReceiverImpl.listenSocket.getLocalPort();							
+				String msg = "REGPING-"+Initialiser.local_address.getHostAddress()+"__"+ReceiverImpl.listenSocket.getLocalPort();							
 
 				DatagramPacket sentPacket = new DatagramPacket(msg.getBytes(), msg.length());
 				sentPacket.setAddress(multicastAddressGroup);

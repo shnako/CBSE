@@ -13,6 +13,7 @@
 .recommenders/
 
 .DS_Store
+Thumbs.db
 *~
 
 # Mobile Tools for Java (J2ME)
