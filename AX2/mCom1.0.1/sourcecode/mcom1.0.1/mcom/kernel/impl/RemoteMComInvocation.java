@@ -1,5 +1,9 @@
 package mcom.kernel.impl;
 
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+
 import org.w3c.dom.Document;
 
 import mcom.kernel.processor.BundleDescriptor;
@@ -20,9 +24,6 @@ public class RemoteMComInvocation {
 	 * 
 	 * You may find page 33 (invoking methods) of lecture slides on reflective and adaptive components useful to achieve this task.
 	 * You may also want to investigate how class loader has been used in MCom to generate BundleDescriptors
-	 * 
-	 * @param inv_doc
-	 * @return
 	 */
 	public static Object executeRemoteCall(Document inv_doc){
 		//System.out.println(KernelUtil.prettyPrint(KernelUtil.getBDString(inv_doc))); //uncomment to study encoded call content		
@@ -32,9 +33,23 @@ public class RemoteMComInvocation {
 		//BundleDescriptor 
 		String bundleId = inv_doc.getElementsByTagName("BundleId").item(0).getTextContent();
 		BundleDescriptor bd = KernelUtil.loadBundleDescriptor(bundleId);
+		
+		
+		Class bundleControllerClass = bd.getBundleController();
+		
+		String methodName = KernelUtil.retrieveContractNames(inv_doc).get(0);
+		HashMap<Object, Object> params = KernelUtil.retrieveParameters(inv_doc, methodName);
+		Class[] paramList = (Class[])Arrays.asList(params).toArray();
+		try {
+			result = bundleControllerClass.getMethod(methodName, paramList);
+		} catch (NoSuchMethodException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (SecurityException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 
-		
-		
 		return result;
 	}
 	
