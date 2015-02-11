@@ -1,9 +1,13 @@
 package mcom.kernel.impl;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
+import mcom.bundle.util.bMethod;
+import mcom.bundle.util.bParameter;
 import org.w3c.dom.Document;
 
 import mcom.kernel.processor.BundleDescriptor;
@@ -26,7 +30,7 @@ public class RemoteMComInvocation {
 	 * You may also want to investigate how class loader has been used in MCom to generate BundleDescriptors
 	 */
 	public static Object executeRemoteCall(Document inv_doc){
-		//System.out.println(KernelUtil.prettyPrint(KernelUtil.getBDString(inv_doc))); //uncomment to study encoded call content		
+		System.out.println(KernelUtil.prettyPrint(KernelUtil.getBDString(inv_doc))); //uncomment to study encoded call content
 
 		Object result = null; 
 			
@@ -36,17 +40,35 @@ public class RemoteMComInvocation {
 		
 		
 		Class bundleControllerClass = bd.getBundleController();
-		
-		String methodName = KernelUtil.retrieveContractNames(inv_doc).get(0);
-		HashMap<Object, Object> params = KernelUtil.retrieveParameters(inv_doc, methodName);
-		Class[] paramList = (Class[])Arrays.asList(params).toArray();
+
+		bMethod requestedMethod = bd.getContracts()[0].getBundleEntityContract();
+		String requestedMethodName = bd.getContracts()[0].getBundleEntityContract().getMethodName();
+
+		Class[] requestedPars = new Class[requestedMethod.getbParameters().length];
+		for (int i = 0; i < requestedPars.length; i++){
+			requestedPars[i] = requestedMethod.getbParameters()[i].getClass();
+		}
+
+		Method methodToInvoke = null;
+		Class[] parameters =null;
+
+		for (Method method : bundleControllerClass.getMethods()) {
+			if (method.getName().equals(requestedMethodName) && Arrays.equals(method.getParameterTypes(), requestedPars)){
+				methodToInvoke = method;
+				parameters = method.getParameterTypes();
+			}
+		}
+
 		try {
-			result = bundleControllerClass.getMethod(methodName, paramList);
-		} catch (NoSuchMethodException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			//noinspection ConstantConditions
+			result = methodToInvoke.invoke(bundleControllerClass, parameters);
 		} catch (SecurityException e) {
-			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InvocationTargetException e) {
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			e.printStackTrace();
+		} catch (NullPointerException e) {
 			e.printStackTrace();
 		}
 
