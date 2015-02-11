@@ -5,7 +5,7 @@ import org.w3c.dom.Document;
 import mcom.kernel.processor.BundleDescriptor;
 import mcom.kernel.util.KernelUtil;
 
-public class RemoteMComInvocation2 {
+public class RemoteMComInvocation {
 
 	/**
 	 * Task 1
