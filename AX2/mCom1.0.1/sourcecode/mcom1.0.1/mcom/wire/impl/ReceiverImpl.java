@@ -131,7 +131,7 @@ public class ReceiverImpl implements Receiver{
 														
 							Document inv_doc = KernelUtil.decodeTextToXml(invokebody.trim());
 							
-							Object result = RemoteMComInvocation.respondToRemoteCall(inv_doc);
+							Object result = RemoteMComInvocation.executeRemoteCall(inv_doc);
 							
 							Element dresult = inv_doc.createElement("Result");
 						    dresult.appendChild(inv_doc.createTextNode(""+result));
