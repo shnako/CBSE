@@ -1,13 +1,10 @@
 package mcom.kernel.impl;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
 
+import mcom.InvokeRequest;
 import mcom.bundle.util.bMethod;
-import mcom.bundle.util.bParameter;
 import org.w3c.dom.Document;
 
 import mcom.kernel.processor.BundleDescriptor;
@@ -38,42 +35,43 @@ public class RemoteMComInvocation {
 		String bundleId = inv_doc.getElementsByTagName("BundleId").item(0).getTextContent();
 		BundleDescriptor bd = KernelUtil.loadBundleDescriptor(bundleId);
 		
-		
 		Class bundleControllerClass = bd.getBundleController();
+
+		InvokeRequest invokeRequest = null;
+		try {
+			invokeRequest = KernelUtil.decodeInvokeRequest(inv_doc);
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
 
 		bMethod requestedMethod = bd.getContracts()[0].getBundleEntityContract();
 		String requestedMethodName = bd.getContracts()[0].getBundleEntityContract().getMethodName();
 
 		Class[] requestedPars = new Class[requestedMethod.getbParameters().length];
 		for (int i = 0; i < requestedPars.length; i++){
-			requestedPars[i] = requestedMethod.getbParameters()[i].getClass();
+			try {
+				requestedPars[i] = Class.forName(requestedMethod.getbParameters()[i].getClassName());
+			} catch (ClassNotFoundException e) {
+				e.printStackTrace();
+			}
 		}
 
 		Method methodToInvoke = null;
-		Class[] parameters =null;
 
 		for (Method method : bundleControllerClass.getMethods()) {
 			if (method.getName().equals(requestedMethodName) && Arrays.equals(method.getParameterTypes(), requestedPars)){
 				methodToInvoke = method;
-				parameters = method.getParameterTypes();
+				break;
 			}
 		}
 
 		try {
 			//noinspection ConstantConditions
-			result = methodToInvoke.invoke(bundleControllerClass, parameters);
-		} catch (SecurityException e) {
-			e.printStackTrace();
-		} catch (InvocationTargetException e) {
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			e.printStackTrace();
-		} catch (NullPointerException e) {
-			e.printStackTrace();
+			result = methodToInvoke.invoke(bundleControllerClass.newInstance(), invokeRequest.getParameters());
+		} catch (Exception ex) {
+			ex.printStackTrace();
 		}
 
 		return result;
 	}
-	
-
 }
