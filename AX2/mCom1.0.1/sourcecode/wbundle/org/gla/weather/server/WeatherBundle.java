@@ -8,13 +8,19 @@ import org.json.JSONException;
 import net.aksingh.java.api.owm.CurrentWeatherData;
 import net.aksingh.java.api.owm.OpenWeatherMap;
 
-public class WeatherBundle {
-	
-	public static void main(String [] args){
-		String w = getWeather("Glasgow");
-		System.out.println(w);
-	}
+import mcom.bundle.ContractType;
+import mcom.bundle.annotations.mController;
+import mcom.bundle.annotations.mControllerInit;
+import mcom.bundle.annotations.mEntity;
+import mcom.bundle.annotations.mEntityContract;
 
+
+@mController
+@mEntity
+public class WeatherBundle {
+
+	@mEntityContract(description="Any city.", contractType = ContractType.GET)
+	@mControllerInit
 	public static String getWeather(String city){
 		String result = "";
 		
@@ -59,5 +65,9 @@ public class WeatherBundle {
 			e.printStackTrace();
 		}
 		return result;
+	}
+
+	public static void main(String [] args){
+
 	}
 }
