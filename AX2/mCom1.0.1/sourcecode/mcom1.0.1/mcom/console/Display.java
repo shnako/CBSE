@@ -12,6 +12,7 @@ import java.util.Scanner;
 
 import mcom.init.Initialiser;
 import mcom.kernel.impl.StubImpl;
+import mcom.kernel.util.Metadata;
 import mcom.wire.impl.ReceiverImpl;
 import mcom.wire.util.DynamicRegistrarDiscovery;
 import mcom.wire.util.RegistrarService;
@@ -36,7 +37,7 @@ public class Display {
     	System.out.println(ansi_header.colorize("___________________________________________"));
     	System.out.println(ansi_normal.colorize("Type ? for help                            "));
     	initCommands();
-       	console();  
+       	console();
 	}
 	
 	private static void initCommands(){//

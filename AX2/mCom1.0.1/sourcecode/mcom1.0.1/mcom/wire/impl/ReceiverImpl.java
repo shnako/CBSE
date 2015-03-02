@@ -11,6 +11,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.io.*;
 
+import mcom.kernel.util.Metadata;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -46,6 +47,7 @@ public class ReceiverImpl implements Receiver{
 
 						String r_message = in.readUTF();
 
+
 						if(r_message.equals("ping")){ //client checking recipient existence
 							boolean accepted = acceptPing(clientSocket);					
 							String response = "";
@@ -65,6 +67,10 @@ public class ReceiverImpl implements Receiver{
 							System.out.println(Display.ansi_normal.colorize("["+clientSocket.getInetAddress()+"__"+clientSocket.getPort()+"]"+r_message));
 							
 							String [] res = r_message.split("REGACCEPT-");
+
+                            Metadata meta = KernelUtil.getMetadataFromString(res[1]);
+                            res[1] = KernelUtil.stripMetadataFromString(res[1]);
+
 							String regip_port = res[1];
 							DynamicRegistrarDiscovery.addActiveRegistrar(regip_port);
 							
@@ -76,6 +82,10 @@ public class ReceiverImpl implements Receiver{
 							
 							String [] res = r_message.split("ADVERTBODY-");
 							String part0 = res[0];
+
+                            Metadata meta = KernelUtil.getMetadataFromString(res[1]);
+                            res[1] = KernelUtil.stripMetadataFromString(res[1]);
+
 							String body = res[1];
 							
 							String []res1 = part0.split("ADVERTHEADER-");
