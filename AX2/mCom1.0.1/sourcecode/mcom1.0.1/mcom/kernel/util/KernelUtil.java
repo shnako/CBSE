@@ -542,13 +542,18 @@ public class KernelUtil {
     }
 
     public static String stripMetadataFromString (String str) {
-        String res;
+        String res = str;
         try {
-            res = str.split("</header>")[1].split("</container>")[0];
+            if (str.contains("</header>")) {
+                res = str.split("</header>")[1].split("</container>")[0];
+            }
+            else if (str.contains("<header/>")) {
+                res = str.split("<header/>")[1].split("</container>")[0];
+            }
             return res;
         }
         catch (Exception e) {
-            return str;
+            return res;
         }
     }
 

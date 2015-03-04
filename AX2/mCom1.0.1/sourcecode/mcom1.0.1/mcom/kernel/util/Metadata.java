@@ -50,6 +50,15 @@ public class Metadata {
         el.appendChild(doc.createTextNode(value));
     }
 
+    public String getMetadata (String key) {
+        if (doc.getElementsByTagName(key) != null) {
+            return doc.getElementsByTagName(key).item(0).getNodeValue();
+        }
+        else {
+            return "";
+        }
+    }
+
     public String toString() {
         try {
             TransformerFactory tf = TransformerFactory.newInstance();
