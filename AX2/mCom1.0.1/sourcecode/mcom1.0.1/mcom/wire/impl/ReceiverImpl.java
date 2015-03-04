@@ -88,7 +88,13 @@ public class ReceiverImpl implements Receiver{
 							String []res1 = part0.split("ADVERTHEADER-");
 							String header = res1[1];
 							
-							RegistrarService.addAdvert(header, body);
+							if (meta.getMetadata("advertised").equals("true")){
+								RegistrarService.addAdvert(header, body);
+							}
+							else if (meta.getMetadata("advertised").equals("false")){
+								RegistrarService.removeAdvert(header);
+							}
+						
 							
 							send(""+clientSocket.getInetAddress()+"__"+clientSocket.getPort()+" ack", out);
 							closeConnection(clientSocket);

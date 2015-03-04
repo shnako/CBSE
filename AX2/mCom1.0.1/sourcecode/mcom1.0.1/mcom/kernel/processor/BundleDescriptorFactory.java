@@ -21,6 +21,7 @@ import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -29,152 +30,171 @@ import java.util.Random;
 import mcom.bundle.Contract;
 import mcom.bundle.util.bMethod;
 import mcom.init.Initialiser;
+import mcom.kernel.util.KernelConstants;
 import mcom.kernel.util.KernelUtil;
 import mcom.wire.impl.ReceiverImpl;
 
 public class BundleDescriptorFactory {
 
 	@SuppressWarnings("rawtypes")
-	public static void buildBundleDescriptors() throws MalformedURLException{
-				
-		File[] mBundles = BundleDirProcessor.loadFilesInBundleDirectory();//list of mBundles (files) in BundleDir
-		
-		//STEP 1
-		//ArrayList<BundleDescriptor> bundleDescriptors = new ArrayList<BundleDescriptor>();	
-		File [] invalidBundles = new File[0];
+	public static void buildBundleDescriptors() throws MalformedURLException {
 
-		for(File mBundle:mBundles){ 
-			System.out.println("Deploying bundle: "+mBundle.getName()+" ...");			
-			
-			String [] mBundleClassFiles = new BundleJarProcessor(mBundle).getClassFiles();	//list of classes in mBundle					
-						
-			//create custom class loader
-			URLClassLoader loader = (URLClassLoader)ClassLoader.getSystemClassLoader();
-			BundleClassLoader mBundleClassLoader = new BundleClassLoader(loader.getURLs());
+		File[] mBundles = BundleDirProcessor.loadFilesInBundleDirectory();// list
+																			// of
+																			// mBundles
+																			// (files)
+																			// in
+																			// BundleDir
+
+		// STEP 1
+		// ArrayList<BundleDescriptor> bundleDescriptors = new
+		// ArrayList<BundleDescriptor>();
+		File[] invalidBundles = new File[0];
+
+		for (File mBundle : mBundles) {
+			System.out.println("Deploying bundle: " + mBundle.getName()
+					+ " ...");
+
+			String[] mBundleClassFiles = new BundleJarProcessor(mBundle)
+					.getClassFiles(); // list of classes in mBundle
+
+			// create custom class loader
+			URLClassLoader loader = (URLClassLoader) ClassLoader
+					.getSystemClassLoader();
+			BundleClassLoader mBundleClassLoader = new BundleClassLoader(
+					loader.getURLs());
 			String path = mBundle.getAbsolutePath();
-			path = "jar:file://"+ path+"!/";
-			mBundleClassLoader.addURL(new URL(path));		
-//						
+			path = "jar:file://" + path + "!/";
+			mBundleClassLoader.addURL(new URL(path));
+			//
 			ArrayList<BundleAnnotationProcessor> mBundleProcessors = new ArrayList<BundleAnnotationProcessor>(); //
-			
-			for(String cf: mBundleClassFiles){				
+
+			for (String cf : mBundleClassFiles) {
 				try {
-					
+
 					Class oClass = Class.forName(cf, true, mBundleClassLoader);
-					BundleAnnotationProcessor mbap = new BundleAnnotationProcessor(oClass);
-					mBundleProcessors.add(mbap);	
+					BundleAnnotationProcessor mbap = new BundleAnnotationProcessor(
+							oClass);
+					mBundleProcessors.add(mbap);
+				} catch (ClassNotFoundException e) {
+				} catch (NoClassDefFoundError e) {
+					// handle carefully
+				} catch (UnsatisfiedLinkError e) {
+					// handle carefully
+				} finally {
 				}
-				catch (ClassNotFoundException e) {}
-				catch(NoClassDefFoundError e) {
-					//handle carefully
-				}
-				catch(UnsatisfiedLinkError e) {
-					//handle carefully
-				}
-				finally{}
 			}
-			
-			//STEP 2
+
+			// STEP 2
 			boolean isValid = true;
-			
+
 			Class bundleController = null;
 			bMethod bundleControllerInit = null;
-			Contract [] contracts = new Contract[0];
-			
-			for(BundleAnnotationProcessor bap:mBundleProcessors){
-				if(bap.getBundleController() != null){
-					if(bundleController == null){
+			Contract[] contracts = new Contract[0];
+
+			for (BundleAnnotationProcessor bap : mBundleProcessors) {
+				if (bap.getBundleController() != null) {
+					if (bundleController == null) {
 						bundleController = bap.getBundleController();
-					}
-					else{
+					} else {
 						isValid = false;
 					}
 				}
-				
-				if(bap.getBundleControllerInit() != null){
-					if(bundleControllerInit == null){
+
+				if (bap.getBundleControllerInit() != null) {
+					if (bundleControllerInit == null) {
 						bundleControllerInit = bap.getBundleControllerInit();
-					}
-					else{
+					} else {
 						isValid = false;
 					}
-				}				
-				
-				if(bap.getContracts().length >0){
-					//add contract to contracts
-					for(Contract contract1: bap.getContracts()){
-						Contract [] c_temp = new Contract[contracts.length+1];
+				}
+
+				if (bap.getContracts().length > 0) {
+					// add contract to contracts
+					for (Contract contract1 : bap.getContracts()) {
+						Contract[] c_temp = new Contract[contracts.length + 1];
 						List<Contract> c_t = new LinkedList<Contract>();
-						
-						for(Contract ct: contracts){
-							if(ct !=null){
+
+						for (Contract ct : contracts) {
+							if (ct != null) {
 								c_t.add(ct);
 							}
 						}
-						
+
 						int i = 0;
-						for(Contract ct: c_t){
+						for (Contract ct : c_t) {
 							c_temp[i] = ct;
-							i = i +1;
+							i = i + 1;
 						}
-						
+
 						c_temp[i] = contract1;
-						contracts = c_temp;	
-					}					
+						contracts = c_temp;
+					}
 				}
 			}
-			
-			if(isValid){
-				//create BundleDescriptor, add to bundleDescriptors
+
+			if (isValid) {
+				// create BundleDescriptor, add to bundleDescriptors
 				BundleDescriptor bd = new BundleDescriptor();
 				bd.setBundleName(mBundle.getName());
-				
+
 				Random rn = new Random();
-				int bundleId = rn.nextInt(100); //TODO: Non-synchronised bundleId: refactor to avoid replication across platform
+				int bundleId = rn.nextInt(100); // TODO: Non-synchronised
+												// bundleId: refactor to avoid
+												// replication across platform
 				bd.setBundleId(bundleId);
-				
-				if(Initialiser.local_address !=null){
-					bd.setAddress(Initialiser.local_address);					
+
+				if (Initialiser.local_address != null) {
+					bd.setAddress(Initialiser.local_address);
 				}
-				if(ReceiverImpl.listenSocket !=null){
-					bd.setPort(ReceiverImpl.listenSocket.getLocalPort());					
+				if (ReceiverImpl.listenSocket != null) {
+					bd.setPort(ReceiverImpl.listenSocket.getLocalPort());
 				}
 				bd.setBundleController(bundleController);
 				bd.setBundleControllerInit(bundleControllerInit);
 				bd.setContract(contracts);
-				
+
 				KernelUtil.storeBundleDescriptor(bd);
-				//bundleDescriptors.add(bd);
-			}
-			else{
-				//add mBundle to invalidBundles
-				File [] c_temp = new File[invalidBundles.length+1];
+				// bundleDescriptors.add(bd);
+			} else {
+				// add mBundle to invalidBundles
+				File[] c_temp = new File[invalidBundles.length + 1];
 				List<File> c_t = new LinkedList<File>();
-				
-				for(File ct: invalidBundles){
-					if(ct !=null){
+
+				for (File ct : invalidBundles) {
+					if (ct != null) {
 						c_t.add(ct);
 					}
 				}
-				
+
 				int i = 0;
-				for(File ct: c_t){
+				for (File ct : c_t) {
 					c_temp[i] = ct;
-					i = i +1;
+					i = i + 1;
 				}
-				
+
 				c_temp[i] = mBundle;
-				invalidBundles = c_temp;					
-			}					
+				invalidBundles = c_temp;
+			}
 		}
-		
-		if(invalidBundles.length >0){
+
+		if (invalidBundles.length > 0) {
 			System.err.println("Invalid bundles");
-			for(File f: invalidBundles){
+			for (File f : invalidBundles) {
 				System.err.println(f.getName());
-			}	
-		}		
+			}
+		}
 	}
-	
-	
+
+	public static void removeBundleDescriptor(int bundleId) {
+		BundleDescriptor[] bds = KernelUtil.loadBundleDescriptors();
+		for (BundleDescriptor bd : bds) {
+			if (bd.getBundleId() == bundleId){
+				new File(KernelConstants.BUNDLEDESCRIPTORDIR + "/" + bd.getBundleName().split(".jar")[0] + ".xml").delete();
+				break;
+			}
+		}
+
+	}
+
 }

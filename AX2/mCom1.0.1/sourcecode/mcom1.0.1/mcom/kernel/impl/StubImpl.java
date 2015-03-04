@@ -35,14 +35,20 @@ public class StubImpl implements Stub{
 		}
 		return false;
 	}
+	
+	public void undeploy(int bundleId){
+			BundleDescriptorFactory.removeBundleDescriptor(bundleId);	
+			System.out.println("bundle undeployment completed");
+	}
 
-	public boolean advertise(int bundleId) {
+	public boolean advertise(int bundleId, boolean isAdvertised) {
 		//Advertise a local BundleDescriptor with bundleId on known registers
-		boolean advertised = false;
+		boolean success = false;
 		for(BundleDescriptor bd:Initialiser.bundleDescriptors){
 			if(bd.getBundleId() == bundleId){
 
                 Metadata meta = new Metadata();
+                meta.addMetadata("advertised", ""+isAdvertised);
                 //meta.addMetadata("test1", "test2");
 				
 				StringBuilder message = new StringBuilder();
@@ -63,15 +69,15 @@ public class StubImpl implements Stub{
 						new SenderImpl().sendMessage(serviceip, new Integer(serviceport), advert);	
 
 					}
-				    advertised = true;	
+				    success = true;	
 				}				
 			}
 		}
-		if(!advertised){
-			System.err.println("Advertised: "+advertised);
+		if(!success){
+			System.err.println("Advertising failed!");
 		}
 		else{
-			System.out.println("Advertised: "+advertised);
+			System.out.println("Advertised: "+isAdvertised);
 		}
 		
 		return true;

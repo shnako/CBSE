@@ -45,9 +45,11 @@ public class Display {
 		commands.put("drs", "execute dynamic registrar discovery");
 		commands.put("reg", "show available registrars");
 		commands.put("deploy", "deploys all bundles in LocalBundleDir directory");
+		commands.put("undeploy%<bundleId>", "undeploys specified bundle");
 		commands.put("llookup", "Local lookup all bundle contracts in LocalBundleDir");
 		commands.put("rlookup", "Remote lookup all bundle contracts with known Registrars");
 		commands.put("adv%<bundleId>", "advertise specified bundleId on known Registers");
+		commands.put("unadv%<bundleId>", "stop advertising specified bundleId on known Registers");
 		commands.put("ladv", "List all adverts in this Register");
 		commands.put("invoke", "A remote invocation of a specified  bundle contract");
 		
@@ -87,7 +89,23 @@ public class Display {
 				}
 				else if(operation.equals("adv")){
 					if(isNumeric(value)){
-						new StubImpl().advertise(new Integer(value));
+						new StubImpl().advertise(new Integer(value), true);
+					}
+					else{
+						System.err.println("NaN");
+					}
+				}
+				else if(operation.equals("unadv")){
+					if(isNumeric(value)){
+						new StubImpl().advertise(new Integer(value), false);
+					}
+					else{
+						System.err.println("NaN");
+					}
+				}
+				else if(operation.equals("undeploy")){
+					if(isNumeric(value)){
+						new StubImpl().undeploy(new Integer(value));
 					}
 					else{
 						System.err.println("NaN");
@@ -117,6 +135,7 @@ public class Display {
 		else if(command.equals("deploy")){
 			new StubImpl().deploy();
 		}
+
 		else if(command.equals("llookup")){
 			new StubImpl().localLookup();
 		}

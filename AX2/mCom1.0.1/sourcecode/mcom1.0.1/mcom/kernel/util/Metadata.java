@@ -52,7 +52,7 @@ public class Metadata {
 
     public String getMetadata (String key) {
         if (doc.getElementsByTagName(key) != null) {
-            return doc.getElementsByTagName(key).item(0).getNodeValue();
+            return doc.getElementsByTagName(key).item(0).getTextContent();
         }
         else {
             return "";
