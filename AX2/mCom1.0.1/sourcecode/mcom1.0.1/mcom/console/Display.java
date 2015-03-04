@@ -44,6 +44,7 @@ public class Display {
 		commands.put("isreg%<bool>", "Switch registrar on/off");
 		commands.put("drs", "execute dynamic registrar discovery");
 		commands.put("reg", "show available registrars");
+		commands.put("con", "create connection to host");
 		commands.put("deploy", "deploys all bundles in LocalBundleDir directory");
 		commands.put("undeploy%<bundleId>", "undeploys specified bundle");
 		commands.put("llookup", "Local lookup all bundle contracts in LocalBundleDir");

@@ -141,7 +141,15 @@ public class ReceiverImpl implements Receiver{
 							String toip = t[0];
 							String toport = t[1];
 							String invokebody = d4[1];
-														
+
+
+							Metadata meta = KernelUtil.getMetadataFromString(invokebody);
+							invokebody = KernelUtil.stripMetadataFromString(invokebody);
+
+							// TODO PIERRE I NEED YOUR HELP
+
+
+
 							Document inv_doc = KernelUtil.decodeTextToXml(invokebody.trim());
 							
 							Object result = RemoteMComInvocation.executeRemoteCall(inv_doc);

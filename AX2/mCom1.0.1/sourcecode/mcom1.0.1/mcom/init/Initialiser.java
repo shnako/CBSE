@@ -21,6 +21,7 @@ import mcom.kernel.processor.BundleDescriptor;
 import mcom.kernel.util.KernelConstants;
 import mcom.wire.Receiver;
 import mcom.wire.impl.ReceiverImpl;
+import mcom.wire.util.ClientConnectionManager;
 import mcom.wire.util.DynamicRegistrarDiscovery;
 import mcom.wire.util.IPResolver;
 import mcom.wire.util.RegistrarService;
@@ -42,7 +43,8 @@ public class Initialiser {
 			local_address = IPResolver.getLocalHostLANAddress();
 			createBundleDirectory();
 			bundleDescriptors = new BundleDescriptor[0];
-			startReceiver();						
+			ClientConnectionManager.getClientConnectionManager(); // Load persistent connections.
+			startReceiver();
 			new Display();
 		} 
 		catch (UnknownHostException e) {
