@@ -3,13 +3,16 @@ package mcom.kernel.util;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-//test only
-import org.w3c.dom.ls.DOMImplementationLS;
-import org.w3c.dom.ls.LSSerializer;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import java.io.StringWriter;
 
 public class Metadata {
 
@@ -47,10 +50,19 @@ public class Metadata {
         el.appendChild(doc.createTextNode(value));
     }
 
-    public static String getStringFromDoc(org.w3c.dom.Document doc)    {
-        DOMImplementationLS domImplementation = (DOMImplementationLS) doc.getImplementation();
-        LSSerializer lsSerializer = domImplementation.createLSSerializer();
-        return lsSerializer.writeToString(doc);
+    public String toString() {
+        try {
+            TransformerFactory tf = TransformerFactory.newInstance();
+            Transformer transformer = tf.newTransformer();
+            transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+            StringWriter writer = new StringWriter();
+            transformer.transform(new DOMSource(doc), new StreamResult(writer));
+            return writer.toString();
+        }
+        catch (Exception e) {
+
+        }
+        return "";
     }
 
 }

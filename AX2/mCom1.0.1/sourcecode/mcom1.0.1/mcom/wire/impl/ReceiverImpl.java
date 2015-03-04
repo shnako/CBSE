@@ -68,9 +68,6 @@ public class ReceiverImpl implements Receiver{
 							
 							String [] res = r_message.split("REGACCEPT-");
 
-                            Metadata meta = KernelUtil.getMetadataFromString(res[1]);
-                            res[1] = KernelUtil.stripMetadataFromString(res[1]);
-
 							String regip_port = res[1];
 							DynamicRegistrarDiscovery.addActiveRegistrar(regip_port);
 							

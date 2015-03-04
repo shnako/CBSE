@@ -519,43 +519,21 @@ public class KernelUtil {
         return output;
     }
 
-    public static String getBDString(Document doc, Metadata meta) {
-        String output = "";
-
-        // Add metadata at the beginning of the string of the bundle
-        // However StubImpl add another header for different functions before this
-        // Will need to parse it at the beginning of ReceiverImpl
-        Document metaDoc = meta.getDocument();
-        doc.getDocumentElement().normalize();
-        doc.insertBefore(metaDoc.getFirstChild(), doc.getFirstChild());
-
-
-        try {
-            TransformerFactory tf = TransformerFactory.newInstance();
-            Transformer transformer = tf.newTransformer();
-            transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
-            StringWriter writer = new StringWriter();
-            transformer.transform(new DOMSource(doc), new StreamResult(writer));
-            output = writer.getBuffer().toString().replaceAll("\n|\r", "");
-
-        } catch (TransformerConfigurationException e) {
-            e.printStackTrace();
-        } catch (TransformerException e) {
-            e.printStackTrace();
-        }
-        return output;
+    public static String getMetadataAndBDString (String BDString, Metadata meta) {
+        return "<container>" + meta.toString() + BDString + "</container>";
     }
 
     public static Metadata getMetadataFromString (String str) {
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-        DocumentBuilder builder;
         Metadata meta = new Metadata();
         try
         {
-            builder = factory.newDocumentBuilder();
-            Document document = builder.parse( new InputSource( new StringReader( str ) ) );
+            Document document = KernelUtil.decodeTextToXml(str.trim());
+            Node importedNode = meta.getDocument().importNode(document.getElementsByTagName("header").item(0), true);
 
-            meta.getDocument().appendChild(document.getElementsByTagName("header").item(0));
+            if (importedNode.hasChildNodes()) {
+                meta.getDocument().getFirstChild().appendChild(importedNode.getFirstChild());
+            }
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -566,7 +544,7 @@ public class KernelUtil {
     public static String stripMetadataFromString (String str) {
         String res;
         try {
-            res = str.split("</header>")[1];
+            res = str.split("</header>")[1].split("</container>")[0];
             return res;
         }
         catch (Exception e) {

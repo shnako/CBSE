@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import mcom.kernel.util.Metadata;
 import org.w3c.dom.Document;
 
 import mcom.console.Display;
@@ -40,11 +41,14 @@ public class StubImpl implements Stub{
 		boolean advertised = false;
 		for(BundleDescriptor bd:Initialiser.bundleDescriptors){
 			if(bd.getBundleId() == bundleId){
+
+                Metadata meta = new Metadata();
+                //meta.addMetadata("test1", "test2");
 				
 				StringBuilder message = new StringBuilder();
 				message.append("ADVERTHEADER-"+Initialiser.local_address.getHostAddress()+"__"+ReceiverImpl.listenSocket.getLocalPort());
 				message.append(System.getProperty("line.separator"));
-				message.append("ADVERTBODY-"+bd.getBDString());
+				message.append("ADVERTBODY-" + KernelUtil.getMetadataAndBDString(bd.getBDString(), meta));
 								
 				//advertise to all known Registers
 				String advert = message.toString();	
