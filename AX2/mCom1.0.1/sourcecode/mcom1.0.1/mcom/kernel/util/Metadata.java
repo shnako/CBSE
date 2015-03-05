@@ -3,6 +3,7 @@ package mcom.kernel.util;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -52,7 +53,9 @@ public class Metadata {
 
     public String getMetadata (String key) {
         if (doc != null && doc.getElementsByTagName(key) != null) {
-            return doc.getElementsByTagName(key).item(0).getTextContent();
+            Node item = doc.getElementsByTagName(key).item(0);
+            if (item == null) return null;
+            return item.getTextContent();
         }
         else {
             return null;

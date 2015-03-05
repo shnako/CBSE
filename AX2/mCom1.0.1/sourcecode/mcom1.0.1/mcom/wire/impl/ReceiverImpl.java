@@ -189,10 +189,11 @@ public class ReceiverImpl implements Receiver {
                             try {
                                 Integer connectionCounter = Integer.parseInt(connectionCounterStr);
                                 if (connectionCounter == -1) {
-                                    System.out.println("Server did not recognize connection with id " +
+                                    String message = "Server did not recognize connection with id " +
                                             ClientConnectionManager.getClientConnectionManager().getConnection(fromipport).getServerConnectionId() +
-                                            ". Removing connection.");
+                                            ". Removing connection.";
                                     ClientConnectionManager.getClientConnectionManager().removeConnection(fromipport);
+                                    System.out.println(message);
                                 }
                             } catch (Exception ex) {
                                 System.out.println("No connection counter received!");
