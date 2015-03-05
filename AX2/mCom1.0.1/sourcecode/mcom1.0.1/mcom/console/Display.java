@@ -29,15 +29,20 @@ public class Display {
 	public static final Ansi ansi_console = new Ansi(Ansi.Attribute.NORMAL, Ansi.Color.BLUE, null);
 	public static Scanner scanner;
 	public Display(){
-		System.out.println(" ");
-    	System.out.println(ansi_header.colorize("_________________mCom-1.0.1________________"));
-    	System.out.println(ansi_header.colorize(" A lightweight software component platform "));
-    	System.out.println(ansi_normal2.colorize("running on:"+Initialiser.local_address.getHostAddress()));
-    	System.out.println(ansi_normal2.colorize("Listening port:"+ReceiverImpl.listenSocket.getLocalPort()));
-    	System.out.println(ansi_header.colorize("___________________________________________"));
-    	System.out.println(ansi_normal.colorize("Type ? for help                            "));
-    	initCommands();
-       	console();
+		try {
+			System.out.println(" ");
+			System.out.println(ansi_header.colorize("_________________mCom-1.0.1________________"));
+			System.out.println(ansi_header.colorize(" A lightweight software component platform "));
+			System.out.println(ansi_normal2.colorize("running on:" + Initialiser.local_address.getHostAddress()));
+			System.out.println(ansi_normal2.colorize("Listening port:" + ReceiverImpl.listenSocket.getLocalPort()));
+			System.out.println(ansi_header.colorize("___________________________________________"));
+			System.out.println(ansi_normal.colorize("Type ? for help                            "));
+			initCommands();
+			console();
+		} catch (NullPointerException ex)  {
+			System.err.println("Could not start listening: " + ex.getMessage());
+			System.exit(-1);
+		}
 	}
 	
 	private static void initCommands(){//
