@@ -1,6 +1,7 @@
 package mcom.wire.util;
 
-public class ClientConnectionDetails {
+// AX3 State implementation.
+public final class ClientConnectionDetails {
     private int serverConnectionId;
     private ConnectionType connectionType;
 

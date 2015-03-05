@@ -133,6 +133,11 @@ public class Display {
 			}
 			
 		}
+		// AX3 State implementation.
+		else if(command.equals("con")){
+			new StubImpl().connect();
+
+		}
 		else if(command.equals("deploy")){
 			new StubImpl().deploy();
 		}
@@ -140,13 +145,13 @@ public class Display {
 		else if(command.equals("llookup")){
 			new StubImpl().localLookup();
 		}
-		else if(command.equals("rlookup")){
+		else if(command.equals("rlookup")) {
 			new StubImpl().remoteLookup();
 		}
 		else if(command.equals("invoke")){
 			new StubImpl().invoke();
 		}
-		else if(command.equals("ladv")){
+		else if(command.equals("ladv")) {
 			RegistrarService.getAdverts();
 			Iterator it = RegistrarService.getAdverts().entrySet().iterator();
 		    while (it.hasNext()) {

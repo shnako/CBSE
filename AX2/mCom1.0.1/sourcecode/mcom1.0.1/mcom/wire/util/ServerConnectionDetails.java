@@ -1,12 +1,13 @@
 package mcom.wire.util;
 
-public class ServerConnectionDetails {
-    private int id;
+// AX3 State implementation.
+public final class ServerConnectionDetails {
+    private String clientId;
     private int callCounter;
     private ConnectionType connectionType;
 
-    public int getId() {
-        return id;
+    public String getClientIp() {
+        return clientId;
     }
 
     public int getCallCounter() {
@@ -21,10 +22,9 @@ public class ServerConnectionDetails {
         return connectionType;
     }
 
-    public ServerConnectionDetails(int id, int callCounter, ConnectionType connectionType) {
-
-        this.id = id;
-        this.callCounter = callCounter;
+    public ServerConnectionDetails(String clientId, ConnectionType connectionType) {
+        this.clientId = clientId;
+        this.callCounter = 0;
         this.connectionType = connectionType;
     }
 }

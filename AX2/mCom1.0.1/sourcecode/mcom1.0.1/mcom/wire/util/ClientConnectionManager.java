@@ -14,7 +14,8 @@ import javax.xml.transform.stream.StreamResult;
 import java.io.File;
 import java.util.HashMap;
 
-public class ClientConnectionManager {
+// AX3 State implementation.
+public final class ClientConnectionManager {
     private static final String CONNECTIONS_FILE = "connections.xml";
     private static final String NODE_ROOT = "PersistentConnections", NODE_CONNECTION = "Connection",
             NODE_HOST_ADDRESS = "HostAddress", NODE_SERVER_CONNECTION_ID = "ServerConnectionId";

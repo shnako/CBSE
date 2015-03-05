@@ -15,6 +15,7 @@ import mcom.wire.impl.ReceiverImpl;
 import mcom.wire.impl.SenderImpl;
 import mcom.wire.util.ConnectionType;
 import mcom.wire.util.DynamicRegistrarDiscovery;
+import mcom.wire.util.Helpers;
 import mcom.wire.util.RemoteLookupService;
 import org.w3c.dom.Document;
 
@@ -53,7 +54,7 @@ public class StubImpl implements Stub {
                 //meta.addMetadata("test1", "test2");
 
                 StringBuilder message = new StringBuilder();
-                message.append("ADVERTHEADER-" + Initialiser.local_address.getHostAddress() + "__" + ReceiverImpl.listenSocket.getLocalPort());
+                message.append("ADVERTHEADER-" + Helpers.getStringRepresentationOfIpPort(Initialiser.local_address.getHostAddress(), ReceiverImpl.listenSocket.getLocalPort()));
                 message.append(System.getProperty("line.separator"));
                 message.append("ADVERTBODY-" + KernelUtil.getMetadataAndBDString(bd.getBDString(), meta));
 
@@ -63,7 +64,7 @@ public class StubImpl implements Stub {
                     System.err.println("No known Registrar");
                 } else {
                     for (String regip_port : DynamicRegistrarDiscovery.getActiveRegistrars()) {
-                        String[] res = regip_port.split("__");
+                        String[] res = Helpers.splitIpPort(regip_port);
                         String serviceip = res[0];
                         String serviceport = res[1];
                         new SenderImpl().sendMessage(serviceip, new Integer(serviceport), advert);
@@ -100,15 +101,17 @@ public class StubImpl implements Stub {
         RemoteLookupService.doRemoteLookup();
     }
 
+    // AX3 State implementation.
     public void connect() {
-        System.out.println("Host Address:");
+        // Get the host address.
+        System.out.print("Host address in format <ip>__<port>: ");
         String host = Display.scanner.nextLine();
-
         if (host == null || host.isEmpty()) {
             System.err.println("Invalid host address!");
         }
 
-        System.out.println("Input connection type (l - stateless, f - stateful, p - persistent:");
+        // Get the connection type.
+        System.out.print("Input connection type (l - stateless, f - stateful, p - persistent: ");
         ConnectionType connectionType;
         try {
             connectionType = ConnectionType.fromString(Display.scanner.nextLine());
@@ -117,13 +120,11 @@ public class StubImpl implements Stub {
             return;
         }
 
-        Metadata meta = new Metadata();
-        meta.addMetadata("connection-type", connectionType.getText());
-
+        // Determine the address ip and port.
         String ip;
         int port;
         try {
-            String[] addressComponents = host.split("__");
+            String[] addressComponents = Helpers.splitIpPort(host);
             ip = addressComponents[0];
             port = Integer.parseInt(addressComponents[1]);
         } catch (Exception ex) {
@@ -131,8 +132,11 @@ public class StubImpl implements Stub {
             return;
         }
 
-        //new SenderImpl().sendMessage(ip, port, invokerMessage);
-        // TODO PIERRE I NEED YOUR HELP
+        // Build message to send.
+        String message = "CONNECTION-REQUEST|CLIENT-IP-" + Initialiser.local_address.getHostAddress();
+        message += "CONNECTION-TYPE-" + connectionType.getText();
+
+        new SenderImpl().sendMessage(ip, port, message, connectionType);
     }
 
     @SuppressWarnings("rawtypes")
@@ -253,11 +257,11 @@ public class StubImpl implements Stub {
     }
 
     private static void sendRemoteCall(int bundleId, String contractName, HashMap<String, String> parameters, String header, Metadata meta) {
-        String s[] = header.split("__");
+        String s[] = Helpers.splitIpPort(header);
         String bhost_ip = s[0];
         String bhost_port = s[1];
 
-        String invoke_request_header = "INVOKEREQUESTHEADER-FROM-" + Initialiser.local_address.getHostAddress() + "__" + ReceiverImpl.listenSocket.getLocalPort() + "-TO-" + bhost_ip + "__" + bhost_port;
+        String invoke_request_header = "INVOKEREQUESTHEADER-FROM-" + Initialiser.getLocalIpPort() + "-TO-" + Helpers.getStringRepresentationOfIpPort(bhost_ip, Integer.parseInt(bhost_port));
 
         String invoke_request_body = "INVOKEREQUESTBODY-";
         Document remoteCallEncoding = KernelUtil.encodeRemoteCallAsxml(bhost_ip, new Integer(bhost_port.trim()), bundleId, contractName, parameters);

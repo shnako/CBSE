@@ -21,10 +21,7 @@ import mcom.kernel.processor.BundleDescriptor;
 import mcom.kernel.util.KernelConstants;
 import mcom.wire.Receiver;
 import mcom.wire.impl.ReceiverImpl;
-import mcom.wire.util.ClientConnectionManager;
-import mcom.wire.util.DynamicRegistrarDiscovery;
-import mcom.wire.util.IPResolver;
-import mcom.wire.util.RegistrarService;
+import mcom.wire.util.*;
 
 public class Initialiser {
 	
@@ -50,6 +47,10 @@ public class Initialiser {
 		catch (UnknownHostException e) {
 			e.printStackTrace();
 		}	     	
+	}
+
+	public static String getLocalIpPort() {
+		return Helpers.getStringRepresentationOfIpPort(Initialiser.local_address.getHostAddress(), ReceiverImpl.listenSocket.getLocalPort());
 	}
 		
 	private static void startReceiver(){

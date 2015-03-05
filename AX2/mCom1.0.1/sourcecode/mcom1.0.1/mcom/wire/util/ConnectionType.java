@@ -1,5 +1,6 @@
 package mcom.wire.util;
 
+// AX3 State implementation.
 public enum ConnectionType {
     STATELESS("l"),
     STATEFUL("f"),
@@ -20,6 +21,15 @@ public enum ConnectionType {
             }
         }
         throw new IllegalArgumentException("No ConnectionType of type " + text + " found!");
+    }
+
+    public String getFullText() {
+        switch (this) {
+            case PERSISTENT: return "persistent";
+            case STATEFUL: return "stateful";
+            case STATELESS: return "stateless";
+            default: throw new EnumConstantNotPresentException(getDeclaringClass(), "No functionality implemented for enum " + this.getText());
+        }
     }
 
     public String getText() {
