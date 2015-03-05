@@ -181,6 +181,7 @@ public class ReceiverImpl implements Receiver {
                             String d1 = dr[1];
                             String d2[] = d1.split("INVOKERESPONSEBODY-");
                             String fromtoipport = d2[0];
+                            String fromipport = fromtoipport.split("-TO-")[0];
                             String responsebody = d2[1];
 
                             Metadata meta = KernelUtil.getMetadataFromString(responsebody);
@@ -189,9 +190,9 @@ public class ReceiverImpl implements Receiver {
                                 Integer connectionCounter = Integer.parseInt(connectionCounterStr);
                                 if (connectionCounter == -1) {
                                     System.out.println("Server did not recognize connection with id " +
-                                            ClientConnectionManager.getClientConnectionManager().getConnection(fromtoipport).getServerConnectionId() +
+                                            ClientConnectionManager.getClientConnectionManager().getConnection(fromipport).getServerConnectionId() +
                                             ". Removing connection.");
-                                    ClientConnectionManager.getClientConnectionManager().removeConnection(fromtoipport);
+                                    ClientConnectionManager.getClientConnectionManager().removeConnection(fromipport);
                                 }
                             } catch (Exception ex) {
                                 System.out.println("No connection counter received!");
