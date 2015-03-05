@@ -13,10 +13,7 @@ import mcom.kernel.util.KernelUtil;
 import mcom.kernel.util.Metadata;
 import mcom.wire.impl.ReceiverImpl;
 import mcom.wire.impl.SenderImpl;
-import mcom.wire.util.ConnectionType;
-import mcom.wire.util.DynamicRegistrarDiscovery;
-import mcom.wire.util.Helpers;
-import mcom.wire.util.RemoteLookupService;
+import mcom.wire.util.*;
 import org.w3c.dom.Document;
 
 import java.net.MalformedURLException;
@@ -146,18 +143,6 @@ public class StubImpl implements Stub {
         String contractName = null;
         HashMap<String, String> parameters = new HashMap<String, String>(); //parameter name:value
 
-        System.out.println("Input connection type (l - stateless, f - stateful, p - persistent:");
-        ConnectionType connectionType;
-        try {
-            connectionType = ConnectionType.fromString(Display.scanner.nextLine());
-        } catch (IllegalArgumentException ex) {
-            System.err.println(ex.getMessage());
-            return;
-        }
-
-        Metadata meta = new Metadata();
-        meta.addMetadata("connection-type", connectionType.getText());
-
         System.out.println("Input BundleID:");
         String bid = Display.scanner.nextLine();
         if (bid == null || bid.trim().length() == 0 || !Display.isNumeric(bid.trim())) {
@@ -240,7 +225,7 @@ public class StubImpl implements Stub {
                                     return;
                                 }
                             }
-                            sendRemoteCall(bundleId, contractName, parameters, header, meta);
+                            sendRemoteInvocation(bundleId, contractName, parameters, header);
 
                         }
                     }
@@ -256,8 +241,15 @@ public class StubImpl implements Stub {
         }
     }
 
-    private static void sendRemoteCall(int bundleId, String contractName, HashMap<String, String> parameters, String header, Metadata meta) {
-        String s[] = Helpers.splitIpPort(header);
+    private static void sendRemoteInvocation(int bundleId, String contractName, HashMap<String, String> parameters, String hostIpPort) {
+        Metadata meta = new Metadata();
+        ClientConnectionDetails clientConnectionDetails = ClientConnectionManager.getClientConnectionManager().getConnection(hostIpPort);
+        if (clientConnectionDetails != null) {
+            meta.addMetadata("CONNECTION-ID", "" + clientConnectionDetails.getServerConnectionId());
+        }
+        // TODO JON, add your security metadata here.
+
+        String s[] = Helpers.splitIpPort(hostIpPort);
         String bhost_ip = s[0];
         String bhost_port = s[1];
 

@@ -55,7 +55,7 @@ public class Metadata {
             return doc.getElementsByTagName(key).item(0).getTextContent();
         }
         else {
-            return "";
+            return null;
         }
     }
 

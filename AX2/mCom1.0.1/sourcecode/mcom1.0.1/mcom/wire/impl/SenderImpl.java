@@ -100,14 +100,18 @@ public class SenderImpl implements Sender {
                     System.out.println("ContractHost: " + header.trim());
                     System.out.println(body.trim());
                 } else if (r_message.contains("INVOKERRESPONSEHEADER-")) { //invocation client
-                    String dr[] = r_message.split("INVOKERRESPONSEHEADER-FROM-");
-                    String d1 = dr[1];
-                    String d2[] = d1.split("INVOKERESPONSEBODY-");
-                    //String fromtoipport = d2[0];
-                    String responsebody = d2[1];
+                    if (!r_message.contains("INVOKERRESPONSEHEADER-FROM-")) {
+                        System.err.println("Access denied: " + r_message);
+                    } else {
+                        String dr[] = r_message.split("INVOKERRESPONSEHEADER-FROM-");
+                        String d1 = dr[1];
+                        String d2[] = d1.split("INVOKERESPONSEBODY-");
+                        //String fromtoipport = d2[0];
+                        String responsebody = d2[1];
 
-                    //print response body
-                    System.out.println(KernelUtil.prettyPrint(responsebody));
+                        //print response body
+                        System.out.println(KernelUtil.prettyPrint(responsebody));
+                    }
                 }
             }
             serverSocket.close();
