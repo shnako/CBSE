@@ -1,6 +1,6 @@
 package mcom.kernel.util;
 /**
- * @Author Inah Omoronyia School of Computing Science, University of Glasgow 
+ * @author Inah Omoronyia School of Computing Science, University of Glasgow
  */
 
 import javafx.util.Pair;
@@ -142,6 +142,7 @@ public class KernelUtil {
         File folder = new File(KernelConstants.BUNDLEDESCRIPTORDIR);
         File[] listOfFiles = folder.listFiles();
 
+        //noinspection ConstantConditions
         for (File file : listOfFiles) {
             try {
                 DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
@@ -224,6 +225,7 @@ public class KernelUtil {
         File folder = new File(KernelConstants.BUNDLEDESCRIPTORDIR);
         File[] listOfFiles = folder.listFiles();
 
+        //noinspection ConstantConditions
         for (File file : listOfFiles) {
             try {
                 DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
@@ -331,20 +333,20 @@ public class KernelUtil {
                     if (oClass.getName().equals(sClass)) {
                         mClass = oClass;
                         found = true;
+                        break;
                     }
-                    break;
                 }
                 if (found) {
                     break;
                 }
             } catch (ClassNotFoundException e) {
+                //handle carefully
             } catch (NoClassDefFoundError e) {
                 //handle carefully
             } catch (UnsatisfiedLinkError e) {
                 //handle carefully
             } catch (MalformedURLException e) {
                 e.printStackTrace();
-            } finally {
             }
         }
 
@@ -378,7 +380,6 @@ public class KernelUtil {
             //handle carefully
         } catch (UnsatisfiedLinkError e) {
             //handle carefully
-        } finally {
         }
 
         return bundleControllerInit;
@@ -412,7 +413,6 @@ public class KernelUtil {
             //handle carefully
         } catch (UnsatisfiedLinkError e) {
             //handle carefully
-        } finally {
         }
 
         return contracts;
@@ -451,9 +451,8 @@ public class KernelUtil {
             contract.appendChild(contractName);
 
             Element xparameters = doc.createElement("Parameters");
-            Iterator it = parameters.entrySet().iterator();
-            while (it.hasNext()) {
-                Map.Entry pairs = (Map.Entry) it.next();
+            for (Object o : parameters.entrySet()) {
+                Map.Entry pairs = (Map.Entry) o;
                 String pName = (String) pairs.getKey();
                 String pValue = (String) pairs.getValue();
 
@@ -519,14 +518,13 @@ public class KernelUtil {
         return output;
     }
 
-    public static String getMetadataAndBDString (String BDString, Metadata meta) {
+    public static String getMetadataAndBDString(String BDString, Metadata meta) {
         return "<container>" + meta.toString() + BDString + "</container>";
     }
 
-    public static Metadata getMetadataFromString (String str) {
+    public static Metadata getMetadataFromString(String str) {
         Metadata meta = new Metadata();
-        try
-        {
+        try {
             Document document = KernelUtil.decodeTextToXml(str.trim());
             Node importedNode = meta.getDocument().importNode(document.getElementsByTagName("header").item(0), true);
 
@@ -541,18 +539,16 @@ public class KernelUtil {
         return meta;
     }
 
-    public static String stripMetadataFromString (String str) {
+    public static String stripMetadataFromString(String str) {
         String res = str;
         try {
             if (str.contains("</header>")) {
                 res = str.split("</header>")[1].split("</container>")[0];
-            }
-            else if (str.contains("<header/>")) {
+            } else if (str.contains("<header/>")) {
                 res = str.split("<header/>")[1].split("</container>")[0];
             }
             return res;
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             return res;
         }
     }

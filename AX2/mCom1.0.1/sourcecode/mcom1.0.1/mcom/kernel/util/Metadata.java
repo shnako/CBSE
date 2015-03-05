@@ -38,8 +38,7 @@ public class Metadata {
     public Document getDocument() {
         if (doc != null) {
             return doc;
-        }
-        else {
+        } else {
             Metadata meta = new Metadata();
             return meta.doc;
         }
@@ -51,13 +50,12 @@ public class Metadata {
         el.appendChild(doc.createTextNode(value));
     }
 
-    public String getMetadata (String key) {
+    public String getMetadata(String key) {
         if (doc != null && doc.getElementsByTagName(key) != null) {
             Node item = doc.getElementsByTagName(key).item(0);
             if (item == null) return null;
             return item.getTextContent();
-        }
-        else {
+        } else {
             return null;
         }
     }
@@ -70,11 +68,9 @@ public class Metadata {
             StringWriter writer = new StringWriter();
             transformer.transform(new DOMSource(doc), new StreamResult(writer));
             return writer.toString();
+        } catch (Exception e) {
+            return "";
         }
-        catch (Exception e) {
-
-        }
-        return "";
     }
 
 }

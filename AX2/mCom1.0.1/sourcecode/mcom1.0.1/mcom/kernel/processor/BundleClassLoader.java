@@ -6,21 +6,19 @@ package mcom.kernel.processor;
 import java.net.URL;
 import java.net.URLClassLoader;
 
-public class BundleClassLoader extends URLClassLoader{
-
-	public URLClassLoader urlClassLoader;	
-	/**
+public class BundleClassLoader extends URLClassLoader {
+    /**
      * @param urls, to carry forward the existing classpath.
      */
     public BundleClassLoader(URL[] urls) {
         super(urls);
     }
-     
+
     @Override
     /**
      * add classpath to the loader.
      */
     public void addURL(URL url) {
         super.addURL(url);
-    }	
+    }
 }

@@ -5,17 +5,16 @@ package mcom.kernel.processor;
  * @Author Inah Omoronyia School of Computing Science, University of Glasgow 
  */
 
-import java.io.File;
-
 import mcom.kernel.util.KernelConstants;
+
+import java.io.File;
 
 public class BundleDirProcessor {
 
-	public static File[] loadFilesInBundleDirectory(){
-		File folder = new File(KernelConstants.BUNDLEDIR);
-		File[] listOfFiles = folder.listFiles();
-		
-		return listOfFiles;
-	}
+    public static File[] loadFilesInBundleDirectory() {
+        File folder = new File(KernelConstants.BUNDLEDIR);
+
+        return folder.listFiles();
+    }
 
 }

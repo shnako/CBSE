@@ -8,7 +8,6 @@ package mcom.wire.impl;
 import mcom.console.Display;
 import mcom.init.Initialiser;
 import mcom.kernel.util.KernelUtil;
-import mcom.kernel.util.Metadata;
 import mcom.wire.Sender;
 import mcom.wire.util.*;
 
@@ -20,7 +19,6 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 
 public class SenderImpl implements Sender {
-    private boolean accepted = false;
 
     public boolean makeConnection() {
         boolean accepted = false;
@@ -34,7 +32,7 @@ public class SenderImpl implements Sender {
             out.writeUTF(i_message); // UTF is a string encoding;
 
             String r_message = in.readUTF();
-            if (i_message != null) {
+            if (r_message.isEmpty()) {
                 if (r_message.equals("rejected")) {
                     accepted = false;
                 } else if (r_message.equals("accepted")) {
@@ -70,7 +68,7 @@ public class SenderImpl implements Sender {
             }
 
             String r_message = in.readUTF();
-            if (r_message != null) {
+            if (r_message.isEmpty()) {
                 if (r_message.contains("ack")) {
                     ack = true;
                     System.out.println(Display.ansi_normal2.colorize(Helpers.getStringRepresentationOfIpPort(Initialiser.receiver_ip, Initialiser.receiver_listening_port) + " " + r_message));
@@ -80,7 +78,8 @@ public class SenderImpl implements Sender {
                     String d1 = dr[1];
                     ClientConnectionManager.getClientConnectionManager().addConnection(Helpers.getStringRepresentationOfIpPort(ip, port), connectionType, Integer.parseInt(d1));
 
-                    System.out.println(connectionType.getFullText() + " connection set. Host id is " + d1);
+                    System.out.println(Helpers.capitalizeString(connectionType.getFullText()) + " connection set. " +
+                            (connectionType.equals(ConnectionType.STATELESS) ? "Connection counter disabled." : "Host id is " + d1));
                 } else if (r_message.startsWith("REGACCEPT")) {
                     String[] res = r_message.split("REGACCEPT-");
                     String regip_port = res[1];
@@ -137,22 +136,6 @@ public class SenderImpl implements Sender {
     }
 
     public void sendMessage(String message) {
-        if (accepted) {
-
-            try {
-                Socket serverSocket = new Socket(Initialiser.receiver_ip, Initialiser.receiver_listening_port);
-                DataOutputStream out = new DataOutputStream(serverSocket.getOutputStream());
-                out.writeUTF(message); // UTF is a string encoding;
-                serverSocket.close();
-            } catch (UnknownHostException e) {
-                System.out.println("Sock:" + e.getMessage());
-            } catch (EOFException e) {
-                System.out.println("EOF:" + e.getMessage());
-            } catch (IOException e) {
-                System.out.println("IO:" + e.getMessage());
-            }
-        } else {
-            System.out.println(Display.ansi_error.colorize("ERROR:No message recipient"));
-        }
+        System.out.println(Display.ansi_error.colorize("ERROR:No message recipient"));
     }
 }

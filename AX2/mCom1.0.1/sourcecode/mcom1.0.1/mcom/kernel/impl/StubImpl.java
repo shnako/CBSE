@@ -1,7 +1,7 @@
 package mcom.kernel.impl;
 
 /**
- * @Author Inah Omoronyia School of Computing Science, University of Glasgow 
+ * @author Inah Omoronyia School of Computing Science, University of Glasgow
  */
 
 import mcom.console.Display;
@@ -50,13 +50,10 @@ public class StubImpl implements Stub {
                 meta.addMetadata("advertised", "" + isAdvertised);
                 //meta.addMetadata("test1", "test2");
 
-                StringBuilder message = new StringBuilder();
-                message.append("ADVERTHEADER-" + Helpers.getStringRepresentationOfIpPort(Initialiser.local_address.getHostAddress(), ReceiverImpl.listenSocket.getLocalPort()));
-                message.append(System.getProperty("line.separator"));
-                message.append("ADVERTBODY-" + KernelUtil.getMetadataAndBDString(bd.getBDString(), meta));
-
                 //advertise to all known Registers
-                String advert = message.toString();
+                String advert = "ADVERTHEADER-" + Helpers.getStringRepresentationOfIpPort(Initialiser.local_address.getHostAddress(), ReceiverImpl.listenSocket.getLocalPort()) +
+                        System.getProperty("line.separator") +
+                        "ADVERTBODY-" + KernelUtil.getMetadataAndBDString(bd.getBDString(), meta);
                 if (DynamicRegistrarDiscovery.getActiveRegistrars() == null || DynamicRegistrarDiscovery.getActiveRegistrars().size() == 0) {
                     System.err.println("No known Registrar");
                 } else {
@@ -139,8 +136,8 @@ public class StubImpl implements Stub {
     @SuppressWarnings("rawtypes")
     public void invoke() {
         //Invoke a specific contract from the lookup list
-        int bundleId = -1;
-        String contractName = null;
+        int bundleId;
+        String contractName;
         HashMap<String, String> parameters = new HashMap<String, String>(); //parameter name:value
 
         System.out.println("Input BundleID:");
@@ -184,9 +181,8 @@ public class StubImpl implements Stub {
                             //BUG FIX:mCom does not handle polymorphism (more than one contract with same contractName but different parameters)
                             HashMap<Object, Object> evparameters = KernelUtil.retrieveParameters(bd_doc, contractName);
 
-                            Iterator evit = evparameters.entrySet().iterator();
-                            while (evit.hasNext()) {
-                                Map.Entry evpairs = (Map.Entry) evit.next();
+                            for (Object o : evparameters.entrySet()) {
+                                Map.Entry evpairs = (Map.Entry) o;
                                 String p_name = (String) evpairs.getKey();
                                 //String p_value = (String)evpairs.getValue();
 
@@ -242,7 +238,7 @@ public class StubImpl implements Stub {
     }
 
     private static void sendRemoteInvocation(int bundleId, String contractName, HashMap<String, String> parameters, String hostIpPort) {
-		hostIpPort = hostIpPort.trim();
+        hostIpPort = hostIpPort.trim();
         Metadata meta = new Metadata();
         ClientConnectionDetails clientConnectionDetails = ClientConnectionManager.getClientConnectionManager().getConnection(hostIpPort);
         if (clientConnectionDetails != null) {

@@ -199,7 +199,7 @@ public class ReceiverImpl implements Receiver {
                                     connectionStateMessage = "Connection counter: " + connectionCounter;
                                 }
                             } catch (Exception ex) {
-                                connectionStateMessage = "No connection counter received!";
+                                connectionStateMessage = "This is a stateless connection, no connection counter used.";
                             }
 
                             System.out.println(KernelUtil.prettyPrint(responsebody));

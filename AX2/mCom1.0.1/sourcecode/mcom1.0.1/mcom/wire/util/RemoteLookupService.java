@@ -1,6 +1,6 @@
 package mcom.wire.util;
 /**
- * @Author Inah Omoronyia School of Computing Science, University of Glasgow 
+ * @author Inah Omoronyia School of Computing Science, University of Glasgow
  */
 
 import mcom.init.Initialiser;
@@ -33,6 +33,7 @@ public class RemoteLookupService {
         lookedUpAdverts.put(header, body);
     }
 
+    @SuppressWarnings("UnusedDeclaration")
     public static void removeLookupResult(String header) {
         lookedUpAdverts.remove(header);
     }

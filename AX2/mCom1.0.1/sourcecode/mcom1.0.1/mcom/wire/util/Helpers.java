@@ -11,4 +11,8 @@ public abstract class Helpers {
     public static String[] splitIpPort(String ipPort) {
         return ipPort.split(IP_PORT_SEPARATOR);
     }
+
+    public static String capitalizeString(String string) {
+        return string.substring(0, 1).toUpperCase() + string.substring(1);
+    }
 }

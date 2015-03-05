@@ -5,7 +5,6 @@ package mcom.wire.util;
  */
 
 import mcom.init.Initialiser;
-import mcom.wire.impl.ReceiverImpl;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -38,7 +37,7 @@ public class DynamicRegistrarDiscovery {
     class DynamicRegistrarDiscoveryRunner implements Runnable {
         public void run() {
             try {
-                InetAddress multicastAddressGroup = null;
+                InetAddress multicastAddressGroup;
 
                 if (Initialiser.local_address instanceof Inet6Address) {
                     multicastAddressGroup = InetAddress.getByName(RegistrarConstants.MULTICAST_ADDRESS_GROUP_IPV6);

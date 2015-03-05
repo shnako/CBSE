@@ -12,7 +12,6 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.File;
-import java.sql.Connection;
 import java.util.HashMap;
 
 // AX3 State implementation.
@@ -40,14 +39,22 @@ public final class ClientConnectionManager {
     }
 
     public void addConnection(String host, ConnectionType connectionType, int connectionId) {
-        connections.put(host, new ClientConnectionDetails(connectionType, connectionId));
+        if (connectionType.equals(ConnectionType.STATELESS)) {
+            try {
+                removeConnection(host);
+            } catch (Exception ex) {
+                // No connection exists. No problem, stateless by default.
+            }
+        } else {
+            connections.put(host, new ClientConnectionDetails(connectionType, connectionId));
 
-        if (connectionType == ConnectionType.PERSISTENT) {
-            persistConnection(host, connectionId);
+            if (connectionType == ConnectionType.PERSISTENT) {
+                persistConnection(host, connectionId);
+            }
         }
     }
 
-    public void removeConnection(String hostAddress) {
+    public void removeConnection(String hostAddress) throws IllegalArgumentException {
         ClientConnectionDetails connection = connections.get(hostAddress);
         if (connection == null) {
             throw new IllegalArgumentException("There is no connection to host " + hostAddress + "!");
@@ -95,8 +102,41 @@ public final class ClientConnectionManager {
     }
 
     private void removePersistentConnection(String hostAddress) {
-        //TODO Vlad implement remove connection.
+        File file = new File(CONNECTIONS_FILE);
+        if (file.exists()) {
+            try {
+                DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+                DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+                Document doc = dBuilder.parse(file);
 
+                doc.getDocumentElement().normalize();
+
+                NodeList nodeList = doc.getElementsByTagName(NODE_CONNECTION);
+
+                for (int i = 0; i < nodeList.getLength(); i++) {
+                    Node node = nodeList.item(i);
+                    if (node.getNodeType() == Node.ELEMENT_NODE) {
+                        Element element = (Element) node;
+
+                        if (element.getElementsByTagName(NODE_HOST_ADDRESS).item(0).getTextContent().equals(hostAddress)) {
+                            node.getParentNode().removeChild(node);
+                            break;
+                        }
+                    }
+                }
+
+                // Write to file.
+                TransformerFactory transformerFactory = TransformerFactory.newInstance();
+                Transformer transformer = transformerFactory.newTransformer();
+                DOMSource source = new DOMSource(doc);
+                StreamResult result = new StreamResult(file);
+                transformer.transform(source, result);
+            } catch (Exception ex) {
+                System.err.println("Could not persist connection: " + ex.getMessage());
+            }
+        } else {
+            System.err.println("Connections file " + CONNECTIONS_FILE + " not found!");
+        }
     }
 
 

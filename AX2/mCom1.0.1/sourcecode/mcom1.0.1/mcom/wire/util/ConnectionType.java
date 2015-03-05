@@ -25,10 +25,14 @@ public enum ConnectionType {
 
     public String getFullText() {
         switch (this) {
-            case PERSISTENT: return "persistent";
-            case STATEFUL: return "stateful";
-            case STATELESS: return "stateless";
-            default: throw new EnumConstantNotPresentException(getDeclaringClass(), "No functionality implemented for enum " + this.getText());
+            case PERSISTENT:
+                return "persistent";
+            case STATEFUL:
+                return "stateful";
+            case STATELESS:
+                return "stateless";
+            default:
+                throw new EnumConstantNotPresentException(getDeclaringClass(), "No functionality implemented for enum " + this.getText());
         }
     }
 

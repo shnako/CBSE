@@ -4,7 +4,6 @@ package mcom.wire.util;
  */
 
 import mcom.init.Initialiser;
-import mcom.wire.impl.ReceiverImpl;
 import mcom.wire.impl.SenderImpl;
 
 import java.io.IOException;
@@ -83,6 +82,7 @@ public class RegistrarService {
                     }
                 }
             } catch (IOException ioe) {
+                System.err.println("Failed running registrar service: " + ioe.getMessage());
             }
         }
     }

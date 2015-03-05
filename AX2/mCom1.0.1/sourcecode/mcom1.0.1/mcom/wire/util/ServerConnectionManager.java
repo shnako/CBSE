@@ -32,9 +32,22 @@ public final class ServerConnectionManager {
     }
 
     public int addConnection(ServerConnectionDetails connectionDetails) {
-        int connectionId = getNextConnectionId();
-        connections.put(connectionId, connectionDetails);
-        return connectionId;
+        if (connectionDetails.getConnectionType().equals(ConnectionType.STATELESS)) {
+            removeConnection(connectionDetails);
+        } else {
+            int connectionId = getNextConnectionId();
+            connections.put(connectionId, connectionDetails);
+            return connectionId;
+        }
+        return -1;
+    }
+
+    private void removeConnection(ServerConnectionDetails connectionDetails) {
+        for (Integer key : connections.keySet()) {
+            if (connections.get(key).getClientIp().equals(connectionDetails.getClientIp())) {
+                connections.remove(key);
+            }
+        }
     }
 
     private int getNextConnectionId() {

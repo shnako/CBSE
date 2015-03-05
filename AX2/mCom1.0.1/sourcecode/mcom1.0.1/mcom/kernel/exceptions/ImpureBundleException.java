@@ -5,27 +5,31 @@ package mcom.kernel.exceptions;
  * 1. contains more than one BundleController
  * 2. contains more than one BundleControllerInit
  * 3. contains a BundleController without BundleControllerInit
- * 4. contains a BundleControllerInit without BundleController 
- * 
+ * 4. contains a BundleControllerInit without BundleController
+ *
  * @author Inah Omoronyia
  */
-public class ImpureBundleException extends Exception{
-		
-	private static final long serialVersionUID = 1L;
+public class ImpureBundleException extends Exception {
 
-	public ImpureBundleException() { 
-		super(); 
-	}
-	
-	public ImpureBundleException(String message) {
-		super(message); 
-	}
-	
-	public ImpureBundleException(String message, Throwable cause) {
-		super(message, cause); 
-	}
-	
-	public ImpureBundleException(Throwable cause) { 
-		super(cause); 
-	}
+    private static final long serialVersionUID = 1L;
+
+    @SuppressWarnings("UnusedDeclaration")
+    public ImpureBundleException() {
+        super();
+    }
+
+    @SuppressWarnings("UnusedDeclaration")
+    public ImpureBundleException(String message) {
+        super(message);
+    }
+
+    @SuppressWarnings("UnusedDeclaration")
+    public ImpureBundleException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    @SuppressWarnings("UnusedDeclaration")
+    public ImpureBundleException(Throwable cause) {
+        super(cause);
+    }
 }
