@@ -113,23 +113,8 @@ public class SenderImpl implements Sender {
                         String dr[] = r_message.split("INVOKERRESPONSEHEADER-FROM-");
                         String d1 = dr[1];
                         String d2[] = d1.split("INVOKERESPONSEBODY-");
-                        String fromtoipport = d2[0];
+                        //String fromtoipport = d2[0];
                         String responsebody = d2[1];
-
-                        Metadata meta = KernelUtil.getMetadataFromString(responsebody);
-                        String connectionCounterStr = meta.getMetadata("CONNECTION-COUNTER");
-                        try {
-                            Integer connectionCounter = Integer.parseInt(connectionCounterStr);
-                            if (connectionCounter == -1) {
-                                System.out.println("Server did not recognize connection with id " +
-                                        ClientConnectionManager.getClientConnectionManager().getConnection(fromtoipport).getServerConnectionId() +
-                                        ". Removing connection.");
-                                ClientConnectionManager.getClientConnectionManager().removeConnection(fromtoipport);
-                            }
-                        } catch (Exception ex) {
-                            System.out.println("No connection counter received!");
-                        }
-
 
                         //print response body
                         System.out.println(KernelUtil.prettyPrint(responsebody));
