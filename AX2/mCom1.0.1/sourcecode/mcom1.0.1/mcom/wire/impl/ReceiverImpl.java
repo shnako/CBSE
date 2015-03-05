@@ -143,9 +143,9 @@ public class ReceiverImpl implements Receiver {
 
 
                             // AX3 State implementation.
-                            Metadata meta = KernelUtil.getMetadataFromString(invokebody);
+                            Metadata metaRequest = KernelUtil.getMetadataFromString(invokebody);
                             invokebody = KernelUtil.stripMetadataFromString(invokebody);
-                            String connectionId = meta.getMetadata("CONNECTION-ID");
+                            String connectionId = metaRequest.getMetadata("CONNECTION-ID");
 
                             ServerConnectionDetails serverConnectionDetails = null;
                             if (connectionId != null) {
@@ -171,7 +171,7 @@ public class ReceiverImpl implements Receiver {
                             String response_header = "INVOKERRESPONSEHEADER-FROM-" + Helpers.getStringRepresentationOfIpPort(toip.trim(), Integer.parseInt(toport.trim())) + "-TO-" + Helpers.getStringRepresentationOfIpPort(fromip.trim(), Integer.parseInt(fromport.trim()));
 
                             String invoke_response_body = "INVOKERESPONSEBODY-";
-                            invoke_response_body = invoke_response_body + KernelUtil.getMetadataAndBDString(KernelUtil.getBDString(inv_doc), meta);
+                            invoke_response_body = invoke_response_body + KernelUtil.getMetadataAndBDString(KernelUtil.getBDString(inv_doc), metaResponse);
                             String invokerMessage = response_header + invoke_response_body;
 
                             new SenderImpl().sendMessage(fromip, new Integer(fromport), invokerMessage, false);
