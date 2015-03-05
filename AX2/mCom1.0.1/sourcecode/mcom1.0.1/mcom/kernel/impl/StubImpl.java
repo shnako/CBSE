@@ -242,6 +242,7 @@ public class StubImpl implements Stub {
     }
 
     private static void sendRemoteInvocation(int bundleId, String contractName, HashMap<String, String> parameters, String hostIpPort) {
+		hostIpPort = hostIpPort.trim();
         Metadata meta = new Metadata();
         ClientConnectionDetails clientConnectionDetails = ClientConnectionManager.getClientConnectionManager().getConnection(hostIpPort);
         if (clientConnectionDetails != null) {
@@ -253,7 +254,7 @@ public class StubImpl implements Stub {
         String bhost_ip = s[0];
         String bhost_port = s[1];
 
-        String invoke_request_header = "INVOKEREQUESTHEADER-FROM-" + Initialiser.getLocalIpPort() + "-TO-" + Helpers.getStringRepresentationOfIpPort(bhost_ip, Integer.parseInt(bhost_port));
+        String invoke_request_header = "INVOKEREQUESTHEADER-FROM-" + Initialiser.getLocalIpPort() + "-TO-" + Helpers.getStringRepresentationOfIpPort(bhost_ip.trim(), Integer.parseInt(bhost_port.trim()));
 
         String invoke_request_body = "INVOKEREQUESTBODY-";
         Document remoteCallEncoding = KernelUtil.encodeRemoteCallAsxml(bhost_ip, new Integer(bhost_port.trim()), bundleId, contractName, parameters);
