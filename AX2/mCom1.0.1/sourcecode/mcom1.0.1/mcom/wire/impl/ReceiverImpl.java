@@ -146,10 +146,10 @@ public class ReceiverImpl implements Receiver {
                             invokebody = KernelUtil.stripMetadataFromString(invokebody);
                             String connectionId = meta.getMetadata("CONNECTION-ID");
 
-                            int connectionCounter = -1;
+                            ServerConnectionDetails serverConnectionDetails = null;
                             if (connectionId != null) {
                                 try {
-                                    connectionCounter = ServerConnectionManager.getServerConnectionManager().useConnection(Integer.parseInt(connectionId), fromip).getCallCounter();
+                                    serverConnectionDetails = ServerConnectionManager.getServerConnectionManager().useConnection(Integer.parseInt(connectionId), fromip);
                                 } catch (IllegalAccessException ex) {
                                     new SenderImpl().sendMessage(fromip, new Integer(fromport), ex.getMessage());
                                     return;
@@ -157,7 +157,7 @@ public class ReceiverImpl implements Receiver {
                             }
 
                             Metadata metaResponse = new Metadata();
-                            metaResponse.addMetadata("CONNECTION-COUNTER", "" + connectionCounter);
+                            metaResponse.addMetadata("CONNECTION-COUNTER", "" + (serverConnectionDetails != null ? serverConnectionDetails.getCallCounter() : -1));
 
                             Document inv_doc = KernelUtil.decodeTextToXml(invokebody.trim());
 

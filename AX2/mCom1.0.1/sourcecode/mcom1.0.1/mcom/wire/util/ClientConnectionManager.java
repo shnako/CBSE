@@ -12,6 +12,7 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.File;
+import java.sql.Connection;
 import java.util.HashMap;
 
 // AX3 State implementation.
@@ -44,6 +45,19 @@ public final class ClientConnectionManager {
         if (connectionType == ConnectionType.PERSISTENT) {
             persistConnection(host, connectionId);
         }
+    }
+
+    public void removeConnection(String hostAddress) {
+        ClientConnectionDetails connection = connections.get(hostAddress);
+        if (connection == null) {
+            throw new IllegalArgumentException("There is no connection to host " + hostAddress + "!");
+        }
+
+        if (connection.getConnectionType().equals(ConnectionType.PERSISTENT)) {
+            removePersistentConnection(hostAddress);
+        }
+
+        connections.remove(hostAddress);
     }
 
     private static void persistConnection(String host, int serverConnectionId) {
@@ -79,6 +93,12 @@ public final class ClientConnectionManager {
             System.err.println("Connections file " + CONNECTIONS_FILE + " not found!");
         }
     }
+
+    private void removePersistentConnection(String hostAddress) {
+        //TODO Vlad implement remove connection.
+
+    }
+
 
     private void loadPersistentConnectionsOrCreateFile() {
         connections = new HashMap<String, ClientConnectionDetails>();

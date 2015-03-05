@@ -22,6 +22,8 @@ public final class ServerConnectionManager {
 
     public ServerConnectionDetails useConnection(Integer connectionId, String clientIp) throws IllegalAccessException {
         ServerConnectionDetails connectionDetails = connections.get(connectionId);
+        if (connectionDetails == null) return null;
+
         if (!connectionDetails.getClientIp().equals(clientIp)) {
             throw new IllegalAccessException("Client with IP " + clientIp + " is not the owner of connection with ID " + connectionId + "!");
         }
