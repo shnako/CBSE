@@ -39,8 +39,15 @@ public class ReceiverImpl implements Receiver {
 
             //noinspection InfiniteLoopStatement
             while (true) {
+                Socket clientSocket;
                 try {
-                    Socket clientSocket = listenSocket.accept();
+                    clientSocket = listenSocket.accept();
+                } catch (Exception ex) {
+                    System.err.println("Listen failed: " + ex.getMessage());
+                    continue;
+                }
+
+                try {
                     if (clientSocket != null) {
                         DataInputStream in = new DataInputStream(clientSocket.getInputStream());
                         DataOutputStream out = new DataOutputStream(clientSocket.getOutputStream());
@@ -51,7 +58,6 @@ public class ReceiverImpl implements Receiver {
                             boolean accepted = acceptPing(clientSocket);
                             String response = accepted ? "accepted" : "rejected";
                             send(response, out);
-                            closeConnection(clientSocket);
                         } else if (r_message.startsWith("REGACCEPT")) {
                             System.out.println(Display.ansi_normal.colorize("[" + Helpers.getStringRepresentationOfIpPort("" + clientSocket.getInetAddress(), clientSocket.getPort()) + "]" + r_message));
 
@@ -61,7 +67,6 @@ public class ReceiverImpl implements Receiver {
                             DynamicRegistrarDiscovery.addActiveRegistrar(regip_port);
 
                             send(Helpers.getStringRepresentationOfIpPort("" + clientSocket.getInetAddress(), clientSocket.getPort()) + " ack", out);
-                            closeConnection(clientSocket);
                         } else if (r_message.startsWith("ADVERTHEADER-")) {
 
                             String[] res = r_message.split("ADVERTBODY-");
@@ -82,7 +87,6 @@ public class ReceiverImpl implements Receiver {
                             }
 
                             send(Helpers.getStringRepresentationOfIpPort("" + clientSocket.getInetAddress(), clientSocket.getPort()) + " ack", out);
-                            closeConnection(clientSocket);
                         } else if (r_message.startsWith("LOOKUPADVERTS-")) {
 
                             if (RegistrarService.isRegistrarService) {
@@ -95,7 +99,6 @@ public class ReceiverImpl implements Receiver {
                                     send(message, out);
                                 }
                             }
-                            closeConnection(clientSocket);
                         } else if (r_message.contains("CONNECTION-REQUEST")) {
                             // AX3 State implementation.
                             try {
@@ -111,8 +114,6 @@ public class ReceiverImpl implements Receiver {
                                 send(message, out);
                             } catch (Exception ex) {
                                 System.err.println("Could not parse connection request: " + ex.getMessage());
-                            } finally {
-                                closeConnection(clientSocket);
                             }
                         } else if (r_message.contains("LOOKUPRESPONSEHEADER-")) {
                             String[] s1 = r_message.split("LOOKUPRESPONSEHEADER-");
@@ -187,22 +188,22 @@ public class ReceiverImpl implements Receiver {
 
                         } else {
                             System.out.println(Display.ansi_normal.colorize("[" + Helpers.getStringRepresentationOfIpPort("" + clientSocket.getInetAddress(), clientSocket.getPort()) + "]" + r_message));
-                            closeConnection(clientSocket);
                         }
                     }
                 } catch (EOFException e) {
                     System.out.println("EOF:" + e.getMessage());
                 } catch (IOException e) {
                     System.out.println("IO:" + e.getMessage());
+                } finally {
+                    closeConnection(clientSocket);
                 }
             }
         }
 
         private boolean acceptPing(Socket clientSocket) {
             System.out.println(Display.ansi_normal2.colorize("now connected to " + Helpers.getStringRepresentationOfIpPort("" + clientSocket.getInetAddress(), clientSocket.getPort())));
-            boolean accepted = true;
 
-            return accepted;
+            return true;
         }
 
         private void send(String message, DataOutputStream out) {
@@ -221,12 +222,10 @@ public class ReceiverImpl implements Receiver {
             if (clientSocket != null) {
                 try {
                     clientSocket.close();
-                    clientSocket = null;
-                } catch (IOException e) {
-                    /* close failed */
+                } catch (IOException ex) {
+                    System.err.println("Closing the client socket failed: " + ex.getMessage());
                 }
             }
         }
     }
-
 }
