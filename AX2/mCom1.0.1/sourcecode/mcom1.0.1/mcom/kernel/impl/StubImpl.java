@@ -64,7 +64,7 @@ public class StubImpl implements Stub {
                         String[] res = Helpers.splitIpPort(regip_port);
                         String serviceip = res[0];
                         String serviceport = res[1];
-                        new SenderImpl().sendMessage(serviceip, new Integer(serviceport), advert);
+                        new SenderImpl().sendMessage(serviceip, new Integer(serviceport), advert, true);
 
                     }
                     success = true;
@@ -133,7 +133,7 @@ public class StubImpl implements Stub {
         String message = "CONNECTION-REQUEST|CLIENT-IP-" + Initialiser.local_address.getHostAddress();
         message += "CONNECTION-TYPE-" + connectionType.getText();
 
-        new SenderImpl().sendMessage(ip, port, message, connectionType);
+        new SenderImpl().sendMessage(ip, port, message, connectionType, true);
     }
 
     @SuppressWarnings("rawtypes")
@@ -260,6 +260,6 @@ public class StubImpl implements Stub {
         Document remoteCallEncoding = KernelUtil.encodeRemoteCallAsxml(bhost_ip, new Integer(bhost_port.trim()), bundleId, contractName, parameters);
         invoke_request_body = invoke_request_body + KernelUtil.getMetadataAndBDString(KernelUtil.getBDString(remoteCallEncoding), meta);
         String invokerMessage = invoke_request_header + invoke_request_body;
-        new SenderImpl().sendMessage(bhost_ip, new Integer(bhost_port.trim()), invokerMessage);
+        new SenderImpl().sendMessage(bhost_ip, new Integer(bhost_port.trim()), invokerMessage, true);
     }
 }

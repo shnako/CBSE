@@ -24,7 +24,7 @@ public class RemoteLookupService {
                 String[] res = Helpers.splitIpPort(regip_port);
                 String serviceip = res[0];
                 String serviceport = res[1];
-                new SenderImpl().sendMessage(serviceip, new Integer(serviceport), message);
+                new SenderImpl().sendMessage(serviceip, new Integer(serviceport), message, true);
             }
         }
     }

@@ -55,13 +55,19 @@ public class SenderImpl implements Sender {
         return accepted;
     }
 
-    public boolean sendMessage(String ip, int port, String message, ConnectionType connectionType) {
+    public boolean sendMessage(String ip, int port, String message, ConnectionType connectionType, boolean expectResponse) {
         boolean ack = false;
         try {
             Socket serverSocket = new Socket(ip, port);
             DataInputStream in = new DataInputStream(serverSocket.getInputStream());
             DataOutputStream out = new DataOutputStream(serverSocket.getOutputStream());
             out.writeUTF(message); // UTF is a string encoding;
+
+            if (!expectResponse) {
+                serverSocket.close();
+                //noinspection ConstantConditions
+                return ack;
+            }
 
             String r_message = in.readUTF();
             if (r_message != null) {
@@ -130,7 +136,6 @@ public class SenderImpl implements Sender {
                     }
                 }
             }
-            serverSocket.close();
         } catch (UnknownHostException e) {
             System.out.println("Sock:" + e.getMessage());
         } catch (EOFException e) {
@@ -142,8 +147,8 @@ public class SenderImpl implements Sender {
         return ack;
     }
 
-    public boolean sendMessage(String ip, int port, String message) {
-        return sendMessage(ip, port, message, null);
+    public boolean sendMessage(String ip, int port, String message, boolean expectResponse) {
+        return sendMessage(ip, port, message, null, expectResponse);
     }
 
     public void sendMessage(String message) {

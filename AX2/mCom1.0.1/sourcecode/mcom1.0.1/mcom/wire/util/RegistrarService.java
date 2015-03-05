@@ -79,7 +79,7 @@ public class RegistrarService {
                         String serviceport = res[1].trim();
 
                         String resStr = "REGACCEPT-" + Initialiser.getLocalIpPort();
-                        new SenderImpl().sendMessage(serviceip, new Integer(serviceport), resStr);
+                        new SenderImpl().sendMessage(serviceip, new Integer(serviceport), resStr, true);
                     }
                 }
             } catch (IOException ioe) {
