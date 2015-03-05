@@ -184,23 +184,26 @@ public class ReceiverImpl implements Receiver {
                             String fromipport = fromtoipport.split("-TO-")[0];
                             String responsebody = d2[1];
 
+                            String connectionStateMessage;
+
                             Metadata meta = KernelUtil.getMetadataFromString(responsebody);
                             String connectionCounterStr = meta.getMetadata("CONNECTION-COUNTER");
                             try {
                                 Integer connectionCounter = Integer.parseInt(connectionCounterStr);
                                 if (connectionCounter == -1) {
-                                    String message = "Server did not recognize connection with id " +
+                                    connectionStateMessage = "Server did not recognize connection with id " +
                                             ClientConnectionManager.getClientConnectionManager().getConnection(fromipport).getServerConnectionId() +
                                             ". Removing connection.";
                                     ClientConnectionManager.getClientConnectionManager().removeConnection(fromipport);
-                                    System.out.println(message);
+                                } else {
+                                    connectionStateMessage = "Connection counter: " + connectionCounter;
                                 }
                             } catch (Exception ex) {
-                                System.out.println("No connection counter received!");
+                                connectionStateMessage = "No connection counter received!";
                             }
 
-                            //print response body
                             System.out.println(KernelUtil.prettyPrint(responsebody));
+                            System.out.println(connectionStateMessage);
 
                         } else {
                             System.out.println(Display.ansi_normal.colorize("[" + Helpers.getStringRepresentationOfIpPort("" + clientSocket.getInetAddress(), clientSocket.getPort()) + "]" + r_message));
