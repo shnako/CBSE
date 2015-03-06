@@ -7,6 +7,7 @@ package mcom.kernel.impl;
 import mcom.console.Display;
 import mcom.init.Initialiser;
 import mcom.kernel.Stub;
+import mcom.kernel.processor.Access;
 import mcom.kernel.processor.BundleDescriptor;
 import mcom.kernel.processor.BundleDescriptorFactory;
 import mcom.kernel.util.KernelUtil;
@@ -14,6 +15,7 @@ import mcom.kernel.util.Metadata;
 import mcom.wire.impl.ReceiverImpl;
 import mcom.wire.impl.SenderImpl;
 import mcom.wire.util.*;
+
 import org.w3c.dom.Document;
 
 import java.net.MalformedURLException;
@@ -76,6 +78,18 @@ public class StubImpl implements Stub {
 
         return true;
     }
+    
+//	public void changeAccessLevel(Integer bundleId, boolean b) {
+//        for (BundleDescriptor bd : Initialiser.bundleDescriptors) {
+//            if (bd.getBundleId() == bundleId){
+//            		bd.setAccessLevel(Access.SUPER);   
+//            		System.out.println(bundleId+" updated");
+//            	}
+//            else{
+//            	System.out.println(bundleId+" updated");
+//            	}
+//            }		
+//		}
 
     public void localLookup() {
         BundleDescriptor[] bds = KernelUtil.loadBundleDescriptors();
@@ -133,6 +147,10 @@ public class StubImpl implements Stub {
         new SenderImpl().sendMessage(ip, port, message, connectionType, true);
     }
 
+    public boolean checkAccess(String bid){
+    	return Initialiser.getAccessList().isEmpty(); 	
+    }
+    
     @SuppressWarnings("rawtypes")
     public void invoke() {
         //Invoke a specific contract from the lookup list
@@ -146,7 +164,12 @@ public class StubImpl implements Stub {
             System.err.println("BundleID is invalid");
             return;
         }
-
+        
+        if(!checkAccess(bid)){
+            System.err.println("You do not have access permission");
+            // insert option to request access
+            return;
+        }
         bundleId = new Integer(bid.trim());
 
         //verify bundleId from
@@ -258,4 +281,6 @@ public class StubImpl implements Stub {
         String invokerMessage = invoke_request_header + invoke_request_body;
         new SenderImpl().sendMessage(bhost_ip, new Integer(bhost_port.trim()), invokerMessage, true);
     }
+
+
 }

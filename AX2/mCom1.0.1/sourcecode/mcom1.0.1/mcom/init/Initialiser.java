@@ -19,6 +19,7 @@ import mcom.wire.util.*;
 import java.io.File;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -33,7 +34,11 @@ public class Initialiser {
     public static DynamicRegistrarDiscovery dynDis;
 
     public static BundleDescriptor[] bundleDescriptors;
-
+    
+    // list of ip addresses allowed to access SUPER methods?
+    // or maybe a hashmap of ip addresses and what methods they can access?
+    private static ArrayList<String> accessList;
+    
     public static void main(String args[]) {
         try {
             local_address = IPResolver.getLocalHostLANAddress();
@@ -41,8 +46,10 @@ public class Initialiser {
             bundleDescriptors = new BundleDescriptor[0];
             ClientConnectionManager.getClientConnectionManager(); // Load persistent connections.
             startReceiver();
+            setAccessList(new ArrayList<String>());
+            
             new Display();
-        } catch (UnknownHostException e) {
+            } catch (UnknownHostException e) {
             e.printStackTrace();
         }
     }
@@ -120,5 +127,13 @@ public class Initialiser {
         bd_temp[i] = bd;
         bundleDescriptors = bd_temp;
     }
+
+	public static ArrayList<String> getAccessList() {
+		return accessList;
+	}
+
+	public static void setAccessList(ArrayList<String> accessList) {
+		Initialiser.accessList = accessList;
+	}
 
 }

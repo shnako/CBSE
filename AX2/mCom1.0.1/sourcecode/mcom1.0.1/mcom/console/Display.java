@@ -57,7 +57,7 @@ public class Display {
         commands.put("unadv%<bundleId>", "stop advertising specified bundleId on known Registers");
         commands.put("ladv", "List all adverts in this Register");
         commands.put("invoke", "A remote invocation of a specified  bundle contract");
-
+        commands.put("authorize", "upgrade user access");
         commands.put("end", "terminate");
     }
 
@@ -94,13 +94,14 @@ public class Display {
                     } else {
                         System.err.println("NaN");
                     }
-                } else if (operation.equals("unadv")) {
+                }                 
+                else if (operation.equals("unadv")) {
                     if (isNumeric(value)) {
                         new StubImpl().advertise(new Integer(value), false);
                     } else {
                         System.err.println("NaN");
                     }
-                } else if (operation.equals("undeploy")) {
+                }else if (operation.equals("undeploy")) {
                     if (isNumeric(value)) {
                         new StubImpl().undeploy(new Integer(value));
                     } else {
@@ -120,15 +121,13 @@ public class Display {
                     String serviceip = res[0];
                     String serviceport = res[1];
                     System.out.println("ip " + serviceip + " : port " + serviceport);
-
                 }
             }
-
         }
+        
         // AX3 State implementation.
         else if (command.equals("con")) {
             new StubImpl().connect();
-
         } else if (command.equals("deploy")) {
             new StubImpl().deploy();
         } else if (command.equals("llookup")) {
