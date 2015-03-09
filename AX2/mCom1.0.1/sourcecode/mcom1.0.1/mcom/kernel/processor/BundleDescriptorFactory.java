@@ -17,11 +17,13 @@ package mcom.kernel.processor;
  * @Author Inah Omoronyia
  */
 
+import StateAnnotations.mStateType;
 import mcom.bundle.Contract;
 import mcom.bundle.util.bMethod;
 import mcom.init.Initialiser;
 import mcom.kernel.util.KernelConstants;
 import mcom.kernel.util.KernelUtil;
+import mcom.kernel.util.StateManager;
 import mcom.wire.impl.ReceiverImpl;
 
 import java.io.File;
@@ -90,6 +92,7 @@ public class BundleDescriptorFactory {
             Class bundleController = null;
             bMethod bundleControllerInit = null;
             Contract[] contracts = new Contract[0];
+            mStateType stateType = null;
 
             for (BundleAnnotationProcessor bap : mBundleProcessors) {
                 if (bap.getBundleController() != null) {
@@ -103,6 +106,14 @@ public class BundleDescriptorFactory {
                 if (bap.getBundleControllerInit() != null) {
                     if (bundleControllerInit == null) {
                         bundleControllerInit = bap.getBundleControllerInit();
+                    } else {
+                        isValid = false;
+                    }
+                }
+
+                if (bap.getStateType() != null) {
+                    if (stateType == null) {
+                        stateType = bap.getStateType();
                     } else {
                         isValid = false;
                     }
@@ -132,6 +143,10 @@ public class BundleDescriptorFactory {
                 }
             }
 
+            if (stateType == null) {
+                isValid = false;
+            }
+
             if (isValid) {
                 // create BundleDescriptor, add to bundleDescriptors
                 BundleDescriptor bd = new BundleDescriptor();
@@ -151,10 +166,13 @@ public class BundleDescriptorFactory {
                 }
                 bd.setBundleController(bundleController);
                 bd.setBundleControllerInit(bundleControllerInit);
+                bd.setStateType(stateType);
                 bd.setContract(contracts);
 
                 KernelUtil.storeBundleDescriptor(bd);
-                // bundleDescriptors.add(bd);
+
+                StateManager.loadOrCreateBundleInstance(bundleId, bundleController, stateType);
+
             } else {
                 // add mBundle to invalidBundles
                 File[] c_temp = new File[invalidBundles.length + 1];
@@ -194,7 +212,5 @@ public class BundleDescriptorFactory {
                 break;
             }
         }
-
     }
-
 }

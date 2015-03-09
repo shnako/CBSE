@@ -3,12 +3,14 @@ package mcom.kernel.util;
  * @author Inah Omoronyia School of Computing Science, University of Glasgow
  */
 
+import StateAnnotations.mStateType;
 import javafx.util.Pair;
 import mcom.InvokeRequest;
 import mcom.bundle.Contract;
 import mcom.bundle.annotations.mControllerInit;
 import mcom.bundle.annotations.mEntityContract;
 import mcom.bundle.util.bMethod;
+import mcom.init.Initialiser;
 import mcom.kernel.processor.BundleClassLoader;
 import mcom.kernel.processor.BundleDescriptor;
 import mcom.kernel.processor.BundleDirProcessor;
@@ -137,7 +139,7 @@ public class KernelUtil {
     }
 
     @SuppressWarnings("rawtypes")
-    public static BundleDescriptor loadBundleDescriptor(String bundleId) {
+    public static BundleDescriptor loadBundleDescriptor(int bundleId) {
         BundleDescriptor bd = null;
         File folder = new File(KernelConstants.BUNDLEDESCRIPTORDIR);
         File[] listOfFiles = folder.listFiles();
@@ -157,17 +159,17 @@ public class KernelUtil {
                 doc.getDocumentElement().normalize();
 
 
-                String BundleId = doc.getElementsByTagName("BundleId").item(0).getTextContent();
+                int BundleId = Integer.parseInt(doc.getElementsByTagName("BundleId").item(0).getTextContent());
                 boolean found = false;
 
-                if (BundleId.equals(bundleId)) {
+                if (BundleId == bundleId) {
                     found = true;
                     bd = new BundleDescriptor();
 
                     String bundleName = doc.getElementsByTagName("BundleName").item(0).getTextContent();
                     bd.setBundleName(bundleName);
 
-                    bd.setBundleId(new Integer(BundleId));
+                    bd.setBundleId(bundleId);
 
                     String hostAddress = doc.getElementsByTagName("HostAddress").item(0).getTextContent();
                     InetAddress inaddress = IPResolver.getAddress(hostAddress);
@@ -179,6 +181,9 @@ public class KernelUtil {
                     String sbundleController = doc.getElementsByTagName("BundleController").item(0).getTextContent();
                     Class bundleController = getmClass(sbundleController);
                     bd.setBundleController(bundleController);
+
+                    mStateType stateType = mStateType.valueOf(doc.getElementsByTagName("StateType").item(0).getTextContent());
+                    bd.setStateType(stateType);
 
                     String sbundleControllerInit = doc.getElementsByTagName("BundleControllerInit").item(0).getTextContent();
                     bMethod bundleControllerInit = getbControllerInit(bundleController, sbundleControllerInit);
@@ -199,12 +204,13 @@ public class KernelUtil {
                             }
                         }
                     }
-                }
 
-                if (found) {
-                    break;
-                }
+                    StateManager.loadOrCreateBundleInstance(bundleId, bundleController, stateType);
 
+                    if (found) {
+                        break;
+                    }
+                }
             } catch (IOException i) {
                 i.printStackTrace();
             } catch (ParserConfigurationException e) {
@@ -244,8 +250,8 @@ public class KernelUtil {
                 String bundleName = doc.getElementsByTagName("BundleName").item(0).getTextContent();
                 bd.setBundleName(bundleName);
 
-                String BundleId = doc.getElementsByTagName("BundleId").item(0).getTextContent();
-                bd.setBundleId(new Integer(BundleId));
+                int bundleId = Integer.parseInt(doc.getElementsByTagName("BundleId").item(0).getTextContent());
+                bd.setBundleId(bundleId);
 
                 String hostAddress = doc.getElementsByTagName("HostAddress").item(0).getTextContent();
                 InetAddress inaddress = IPResolver.getAddress(hostAddress);
@@ -261,6 +267,9 @@ public class KernelUtil {
                 String sbundleControllerInit = doc.getElementsByTagName("BundleControllerInit").item(0).getTextContent();
                 bMethod bundleControllerInit = getbControllerInit(bundleController, sbundleControllerInit);
                 bd.setBundleControllerInit(bundleControllerInit);
+
+                mStateType stateType = mStateType.valueOf(doc.getElementsByTagName("StateType").item(0).getTextContent());
+                bd.setStateType(stateType);
 
                 NodeList nList = doc.getElementsByTagName("Contracts");
                 for (int temp = 0; temp < nList.getLength(); temp++) {
@@ -295,6 +304,10 @@ public class KernelUtil {
 
                 p_temp[i] = bd;
                 bds = p_temp;
+
+                Initialiser.addBundleDescriptor(bd);
+
+                StateManager.loadOrCreateBundleInstance(bundleId, bundleController, stateType);
 
             } catch (IOException i) {
                 i.printStackTrace();

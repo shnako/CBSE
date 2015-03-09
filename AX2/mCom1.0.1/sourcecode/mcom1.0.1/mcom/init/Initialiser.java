@@ -44,7 +44,6 @@ public class Initialiser {
             local_address = IPResolver.getLocalHostLANAddress();
             createBundleDirectory();
             bundleDescriptors = new BundleDescriptor[0];
-            ClientConnectionManager.getClientConnectionManager(); // Load persistent connections.
             startReceiver();
             setAccessList(new ArrayList<String>());
             
@@ -86,6 +85,7 @@ public class Initialiser {
             }
         }
         createBundleDescDirectory();
+        createBundlePersistentDirectory();
     }
 
     private static void createBundleDescDirectory() {
@@ -104,6 +104,26 @@ public class Initialiser {
             }
             if (!result) {
                 System.err.println("error creating BundleDescriptorDirectory");
+            }
+        }
+    }
+
+    private static void createBundlePersistentDirectory() {
+        File bundlePersistentDir = new File(KernelConstants.BUNDLEPERSISTENTDIR);
+
+        // if the directory does not exist, create it
+        if (!bundlePersistentDir.exists()) {
+            //System.out.println("creating Bundle Persistent Directory: " + bundleDir);
+            boolean result = false;
+            try {
+                //noinspection ResultOfMethodCallIgnored
+                bundlePersistentDir.mkdir();
+                result = true;
+            } catch (SecurityException se) {
+                //handle it
+            }
+            if (!result) {
+                System.err.println("error creating " + KernelConstants.BUNDLEPERSISTENTDIR);
             }
         }
     }

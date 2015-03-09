@@ -99,22 +99,6 @@ public class ReceiverImpl implements Receiver {
                                     send(message, out);
                                 }
                             }
-                        } else if (r_message.contains("CONNECTION-REQUEST")) {
-                            // AX3 State implementation.
-                            try {
-                                String parameterSplit1 = r_message.split("CLIENT-IP-")[1];
-                                String[] parameterSplit = parameterSplit1.split("CONNECTION-TYPE-");
-                                String clientIp = parameterSplit[0];
-                                ConnectionType connectionType = ConnectionType.fromString(parameterSplit[1]);
-                                ServerConnectionDetails serverConnectionDetails = new ServerConnectionDetails(clientIp, connectionType);
-
-                                int connectionId = ServerConnectionManager.getServerConnectionManager().addConnection(serverConnectionDetails);
-                                String message = "CONNECTIONID-" + connectionId;
-
-                                send(message, out);
-                            } catch (Exception ex) {
-                                System.err.println("Could not parse connection request: " + ex.getMessage());
-                            }
                         } else if (r_message.contains("LOOKUPRESPONSEHEADER-")) {
                             String[] s1 = r_message.split("LOOKUPRESPONSEHEADER-");
                             String[] s2 = s1[1].split("LOOKUPRESPONSEBODY-");
@@ -141,25 +125,6 @@ public class ReceiverImpl implements Receiver {
                             String toport = t[1];
                             String invokebody = d4[1];
 
-
-                            // AX3 State implementation.
-                            Metadata metaRequest = KernelUtil.getMetadataFromString(invokebody);
-                            invokebody = KernelUtil.stripMetadataFromString(invokebody);
-                            String connectionId = metaRequest.getMetadata("CONNECTION-ID");
-
-                            ServerConnectionDetails serverConnectionDetails = null;
-                            if (connectionId != null) {
-                                try {
-                                    serverConnectionDetails = ServerConnectionManager.getServerConnectionManager().useConnection(Integer.parseInt(connectionId), fromip);
-                                } catch (IllegalAccessException ex) {
-                                    new SenderImpl().sendMessage(fromip, new Integer(fromport), ex.getMessage(), false);
-                                    return;
-                                }
-                            }
-
-                            Metadata metaResponse = new Metadata();
-                            metaResponse.addMetadata("CONNECTION-COUNTER", "" + (serverConnectionDetails != null ? serverConnectionDetails.getCallCounter() : -1));
-
                             Document inv_doc = KernelUtil.decodeTextToXml(invokebody.trim());
 
                             Object result = RemoteMComInvocation.executeRemoteCall(inv_doc);
@@ -171,7 +136,7 @@ public class ReceiverImpl implements Receiver {
                             String response_header = "INVOKERRESPONSEHEADER-FROM-" + Helpers.getStringRepresentationOfIpPort(toip.trim(), Integer.parseInt(toport.trim())) + "-TO-" + Helpers.getStringRepresentationOfIpPort(fromip.trim(), Integer.parseInt(fromport.trim()));
 
                             String invoke_response_body = "INVOKERESPONSEBODY-";
-                            invoke_response_body = invoke_response_body + KernelUtil.getMetadataAndBDString(KernelUtil.getBDString(inv_doc), metaResponse);
+                            invoke_response_body = invoke_response_body + KernelUtil.getBDString(inv_doc);
                             String invokerMessage = response_header + invoke_response_body;
 
                             new SenderImpl().sendMessage(fromip, new Integer(fromport), invokerMessage, false);
@@ -184,26 +149,7 @@ public class ReceiverImpl implements Receiver {
                             String fromipport = fromtoipport.split("-TO-")[0];
                             String responsebody = d2[1];
 
-                            String connectionStateMessage;
-
-                            Metadata meta = KernelUtil.getMetadataFromString(responsebody);
-                            String connectionCounterStr = meta.getMetadata("CONNECTION-COUNTER");
-                            try {
-                                Integer connectionCounter = Integer.parseInt(connectionCounterStr);
-                                if (connectionCounter == -1) {
-                                    connectionStateMessage = "Server did not recognize connection with id " +
-                                            ClientConnectionManager.getClientConnectionManager().getConnection(fromipport).getServerConnectionId() +
-                                            ". Removing connection.";
-                                    ClientConnectionManager.getClientConnectionManager().removeConnection(fromipport);
-                                } else {
-                                    connectionStateMessage = "Connection counter: " + connectionCounter;
-                                }
-                            } catch (Exception ex) {
-                                connectionStateMessage = "This is a stateless connection, no connection counter used.";
-                            }
-
                             System.out.println(KernelUtil.prettyPrint(responsebody));
-                            System.out.println(connectionStateMessage);
 
                         } else {
                             System.out.println(Display.ansi_normal.colorize("[" + Helpers.getStringRepresentationOfIpPort("" + clientSocket.getInetAddress(), clientSocket.getPort()) + "]" + r_message));

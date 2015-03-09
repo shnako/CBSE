@@ -53,7 +53,7 @@ public class SenderImpl implements Sender {
         return accepted;
     }
 
-    public boolean sendMessage(String ip, int port, String message, ConnectionType connectionType, boolean expectResponse) {
+    public boolean sendMessage(String ip, int port, String message, boolean expectResponse) {
         boolean ack = false;
         try {
             Socket serverSocket = new Socket(ip, port);
@@ -68,18 +68,10 @@ public class SenderImpl implements Sender {
             }
 
             String r_message = in.readUTF();
-            if (r_message.isEmpty()) {
+            if (!r_message.isEmpty()) {
                 if (r_message.contains("ack")) {
                     ack = true;
                     System.out.println(Display.ansi_normal2.colorize(Helpers.getStringRepresentationOfIpPort(Initialiser.receiver_ip, Initialiser.receiver_listening_port) + " " + r_message));
-                } else if (connectionType != null && r_message.contains("CONNECTIONID-")) {
-                    // AX3 State implementation.
-                    String dr[] = r_message.split("CONNECTIONID-");
-                    String d1 = dr[1];
-                    ClientConnectionManager.getClientConnectionManager().addConnection(Helpers.getStringRepresentationOfIpPort(ip, port), connectionType, Integer.parseInt(d1));
-
-                    System.out.println(Helpers.capitalizeString(connectionType.getFullText()) + " connection set. " +
-                            (connectionType.equals(ConnectionType.STATELESS) ? "Connection counter disabled." : "Host id is " + d1));
                 } else if (r_message.startsWith("REGACCEPT")) {
                     String[] res = r_message.split("REGACCEPT-");
                     String regip_port = res[1];
@@ -129,10 +121,6 @@ public class SenderImpl implements Sender {
         }
 
         return ack;
-    }
-
-    public boolean sendMessage(String ip, int port, String message, boolean expectResponse) {
-        return sendMessage(ip, port, message, null, expectResponse);
     }
 
     public void sendMessage(String message) {

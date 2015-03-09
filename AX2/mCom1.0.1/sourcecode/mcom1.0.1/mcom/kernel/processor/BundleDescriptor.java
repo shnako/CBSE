@@ -3,6 +3,8 @@ package mcom.kernel.processor;
  * @Author Inah Omoronyia School of Computing Science, University of Glasgow 
  */
 
+import StateAnnotations.mStateType;
+import com.sun.java.swing.plaf.gtk.GTKConstants;
 import mcom.bundle.Contract;
 import mcom.bundle.util.bMethod;
 import mcom.kernel.util.KernelUtil;
@@ -35,6 +37,8 @@ public class BundleDescriptor implements Serializable {
     private Class bundleController = null;
     private bMethod bundleControllerInit = null;
     private Contract[] contracts;
+
+    private mStateType stateType;
 
     public BundleDescriptor() {
         contracts = new Contract[0];
@@ -111,6 +115,15 @@ public class BundleDescriptor implements Serializable {
 
     public int getPort() {
         return port;
+    }
+
+    public void setStateType(mStateType stateType) {
+        this.stateType = stateType;
+    }
+
+    public mStateType getStateType() {
+
+        return stateType;
     }
 
     public void setPort(int servicePort) {
@@ -215,6 +228,10 @@ public class BundleDescriptor implements Serializable {
             Element xbundleController = doc.createElement("BundleController");
             xbundleController.appendChild(doc.createTextNode(bundleController.getName()));
             rootElement.appendChild(xbundleController);
+
+            Element xStateType = doc.createElement("StateType");
+            xStateType.appendChild(doc.createTextNode(stateType.toString()));
+            rootElement.appendChild(xStateType);
 
             Element xbundleControllerInit = doc.createElement("BundleControllerInit");
             xbundleControllerInit.appendChild(doc.createTextNode(bundleControllerInit.getMethodName()));

@@ -48,7 +48,6 @@ public class Display {
         commands.put("isreg%<bool>", "Switch registrar on/off");
         commands.put("drs", "execute dynamic registrar discovery");
         commands.put("reg", "show available registrars");
-        commands.put("con", "create connection to host");
         commands.put("deploy", "deploys all bundles in LocalBundleDir directory");
         commands.put("undeploy%<bundleId>", "undeploys specified bundle");
         commands.put("llookup", "Local lookup all bundle contracts in LocalBundleDir");
@@ -124,11 +123,8 @@ public class Display {
                 }
             }
         }
-        
-        // AX3 State implementation.
-        else if (command.equals("con")) {
-            new StubImpl().connect();
-        } else if (command.equals("deploy")) {
+
+        if (command.equals("deploy")) {
             new StubImpl().deploy();
         } else if (command.equals("llookup")) {
             new StubImpl().localLookup();

@@ -97,7 +97,7 @@ public class StubImpl implements Stub {
         for (int i = 0; i < bds.length; i++) {
             Initialiser.addBundleDescriptor(bds[i]);
             int m = i + 1;
-            System.out.println("||(" + m + ") BundleID:" + bds[i].getBundleId() + " BundleName:" + bds[i].getBundleName() + "||");
+            System.out.println("||(" + m + ") BundleID:" + bds[i].getBundleId() + " BundleName:" + bds[i].getBundleName() + " StateType:" + bds[i].getStateType() + "||");
             System.out.println(bds[i]);
         }
     }
@@ -107,44 +107,6 @@ public class StubImpl implements Stub {
         // (This function is similar to localLookup() beside the requirement that lookup
         // should be executed on known remote Registers)
         RemoteLookupService.doRemoteLookup();
-    }
-
-    // AX3 State implementation.
-    public void connect() {
-        // Get the host address.
-        System.out.print("Host address in format <ip>__<port>: ");
-        String host = Display.scanner.nextLine();
-        if (host == null || host.isEmpty()) {
-            System.err.println("Invalid host address!");
-        }
-
-        // Get the connection type.
-        System.out.print("Input connection type (l - stateless, f - stateful, p - persistent: ");
-        ConnectionType connectionType;
-        try {
-            connectionType = ConnectionType.fromString(Display.scanner.nextLine());
-        } catch (IllegalArgumentException ex) {
-            System.err.println(ex.getMessage());
-            return;
-        }
-
-        // Determine the address ip and port.
-        String ip;
-        int port;
-        try {
-            String[] addressComponents = Helpers.splitIpPort(host);
-            ip = addressComponents[0];
-            port = Integer.parseInt(addressComponents[1]);
-        } catch (Exception ex) {
-            System.err.println("Invalid host address!");
-            return;
-        }
-
-        // Build message to send.
-        String message = "CONNECTION-REQUEST|CLIENT-IP-" + Initialiser.local_address.getHostAddress();
-        message += "CONNECTION-TYPE-" + connectionType.getText();
-
-        new SenderImpl().sendMessage(ip, port, message, connectionType, true);
     }
 
     public boolean checkAccess(String bid){
@@ -263,10 +225,6 @@ public class StubImpl implements Stub {
     private static void sendRemoteInvocation(int bundleId, String contractName, HashMap<String, String> parameters, String hostIpPort) {
         hostIpPort = hostIpPort.trim();
         Metadata meta = new Metadata();
-        ClientConnectionDetails clientConnectionDetails = ClientConnectionManager.getClientConnectionManager().getConnection(hostIpPort);
-        if (clientConnectionDetails != null) {
-            meta.addMetadata("CONNECTION-ID", "" + clientConnectionDetails.getServerConnectionId());
-        }
         // TODO JON, add your security metadata here.
 
         String s[] = Helpers.splitIpPort(hostIpPort);

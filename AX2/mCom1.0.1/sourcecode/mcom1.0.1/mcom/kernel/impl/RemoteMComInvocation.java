@@ -3,7 +3,9 @@ package mcom.kernel.impl;
 import mcom.InvokeRequest;
 import mcom.bundle.util.bMethod;
 import mcom.kernel.processor.BundleDescriptor;
+import mcom.kernel.util.BundleInstance;
 import mcom.kernel.util.KernelUtil;
+import mcom.kernel.util.StateManager;
 import org.w3c.dom.Document;
 
 import java.lang.reflect.Method;
@@ -26,22 +28,21 @@ public class RemoteMComInvocation {
      * You may also want to investigate how class loader has been used in MCom to generate BundleDescriptors
      */
     public static Object executeRemoteCall(Document inv_doc) {
-        System.out.println(KernelUtil.prettyPrint(KernelUtil.getBDString(inv_doc))); //uncomment to study encoded call content
+        //System.out.println(KernelUtil.prettyPrint(KernelUtil.getBDString(inv_doc))); //uncomment to study encoded call content
 
         Object result = null;
+        Object instanceToInvoke;
 
-        //BundleDescriptor
-        String bundleId = inv_doc.getElementsByTagName("BundleId").item(0).getTextContent();
-        BundleDescriptor bd = KernelUtil.loadBundleDescriptor(bundleId);
-
-        Class bundleControllerClass = bd.getBundleController();
-
-        InvokeRequest invokeRequest = null;
+        InvokeRequest invokeRequest;
         try {
             invokeRequest = KernelUtil.decodeInvokeRequest(inv_doc);
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
+            return null;
         }
+
+        BundleDescriptor bd = KernelUtil.loadBundleDescriptor(invokeRequest.getBundleId());
+        Class bundleControllerClass = bd.getBundleController();
 
         bMethod requestedMethod = bd.getContracts()[0].getBundleEntityContract();
         String requestedMethodName = bd.getContracts()[0].getBundleEntityContract().getMethodName();
@@ -64,9 +65,17 @@ public class RemoteMComInvocation {
             }
         }
 
+        BundleInstance bundleInstance = StateManager.getStateManager().getInstance(invokeRequest.getBundleId());
+
         try {
+            if (bundleInstance != null) {
+                instanceToInvoke = bundleInstance.getInstance();
+            } else {
+                instanceToInvoke = bundleControllerClass.newInstance();
+            }
+
             //noinspection ConstantConditions
-            result = methodToInvoke.invoke(bundleControllerClass.newInstance(), invokeRequest.getParameters());
+            result = methodToInvoke.invoke(instanceToInvoke, invokeRequest.getParameters());
         } catch (Exception ex) {
             ex.printStackTrace();
         }

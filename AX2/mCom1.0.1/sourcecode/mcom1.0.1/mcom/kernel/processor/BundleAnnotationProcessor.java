@@ -10,6 +10,8 @@ package mcom.kernel.processor;
  * @Author Inah Omoronyia School of Computing Science, University of Glasgow 
  */
 
+import StateAnnotations.mState;
+import StateAnnotations.mStateType;
 import mcom.bundle.Contract;
 import mcom.bundle.annotations.mController;
 import mcom.bundle.annotations.mControllerInit;
@@ -28,6 +30,7 @@ public class BundleAnnotationProcessor {
     private Class bundleController;
     private bMethod bundleControllerInit;
     private Contract[] contracts;
+    private mStateType stateType;
 
     /*
      * @throws: ImpureBundleException
@@ -107,6 +110,8 @@ public class BundleAnnotationProcessor {
                         }
                     }
                 }
+            } else if (annotation1 instanceof mState) {
+                stateType = ((mState) annotation1).stateType();
             }
         }
     }
@@ -143,4 +148,7 @@ public class BundleAnnotationProcessor {
         return contracts;
     }
 
+    public mStateType getStateType() {
+        return stateType;
+    }
 }
