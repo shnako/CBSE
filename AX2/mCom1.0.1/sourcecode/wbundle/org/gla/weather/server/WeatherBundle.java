@@ -3,6 +3,8 @@ package org.gla.weather.server;
 import java.io.IOException;
 import java.net.MalformedURLException;
 
+import StateAnnotations.mState;
+import StateAnnotations.mStateType;
 import org.json.JSONException;
 
 import net.aksingh.java.api.owm.CurrentWeatherData;
@@ -17,6 +19,7 @@ import mcom.bundle.annotations.mEntityContract;
 
 @mController
 @mEntity
+@mState(stateType= mStateType.STATEFUL)
 public class WeatherBundle {
 
 	@mEntityContract(description="Any city.", contractType = ContractType.GET)

@@ -9,6 +9,7 @@
 .idea/
 .metadata/
 *.iml
+*.MF
 
 .recommenders/
 
