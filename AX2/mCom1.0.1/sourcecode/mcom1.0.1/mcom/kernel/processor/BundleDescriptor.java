@@ -31,6 +31,7 @@ public class BundleDescriptor implements Serializable {
     private String bundleName;
     private int bundleId;
     private Access accessLevel = Access.STANDARD;
+    private int totalUse;
     private int port;
     private InetAddress address;
 
@@ -42,6 +43,7 @@ public class BundleDescriptor implements Serializable {
 
     public BundleDescriptor() {
         contracts = new Contract[0];
+        totalUse = 0;
     }
 
     public Class getBundleController() {
@@ -146,6 +148,14 @@ public class BundleDescriptor implements Serializable {
 		this.accessLevel = accessLevel;
 	}
 
+	public int getTotalUse(){
+		return totalUse;
+	}
+	
+	public void setTotalUse(int totalUse){
+		this.totalUse = totalUse;
+	}
+	
     protected String getPortAsString() {
         return "" + getPort();
     }
@@ -212,6 +222,10 @@ public class BundleDescriptor implements Serializable {
             Element xbundleAccessLevel = doc.createElement("AccessLevel");
             xbundleAccessLevel.appendChild(doc.createTextNode("" + getAccessLevel()));
             rootElement.appendChild(xbundleAccessLevel);
+            
+            Element xbundleTotalUse = doc.createElement("TotalUse");
+            xbundleTotalUse.appendChild(doc.createTextNode("" + getTotalUse()));
+            rootElement.appendChild(xbundleTotalUse);
 
             Element xhostAddress = doc.createElement("HostAddress");
             if (getAddressAsString() != null) {

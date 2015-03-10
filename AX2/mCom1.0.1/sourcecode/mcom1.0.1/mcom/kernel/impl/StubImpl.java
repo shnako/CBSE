@@ -4,10 +4,10 @@ package mcom.kernel.impl;
  * @author Inah Omoronyia School of Computing Science, University of Glasgow
  */
 
+import mcom.bundle.Contract;
 import mcom.console.Display;
 import mcom.init.Initialiser;
 import mcom.kernel.Stub;
-import mcom.kernel.processor.Access;
 import mcom.kernel.processor.BundleDescriptor;
 import mcom.kernel.processor.BundleDescriptorFactory;
 import mcom.kernel.util.KernelUtil;
@@ -22,7 +22,9 @@ import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 public class StubImpl implements Stub {
 
@@ -109,6 +111,36 @@ public class StubImpl implements Stub {
         RemoteLookupService.doRemoteLookup();
     }
 
+    public void run(String contractName){
+    	List<Entry<String, String>> rankings = new ArrayList<Entry<String, String>>(); 
+    	
+        for (Entry<String, String> entry : RemoteLookupService.getLookupResults().entrySet()){
+    		String bundle = entry.getValue();
+            Document bd_doc = KernelUtil.decodeTextToXml(bundle.trim());
+
+            int bundleId = KernelUtil.retrieveBundleId(bd_doc);
+
+            if (hasContract(bundleId, contractName)){
+                rankings.add(entry);
+            }
+
+    	}
+
+        System.out.println(rankings.size());
+    }
+
+    private boolean hasContract(int bundleId, String contractName){
+        BundleDescriptor bd = KernelUtil.loadBundleDescriptor(bundleId);
+
+        for (Contract contract : bd.getContracts()){
+            if (contract.getBundleEntityContract().getClassName().equals(contractName)){
+                return true;
+            }
+        }
+
+        return false;
+    }
+    
     @SuppressWarnings("rawtypes")
     public void invoke() {
         //Invoke a specific contract from the lookup list
@@ -217,6 +249,8 @@ public class StubImpl implements Stub {
         hostIpPort = hostIpPort.trim();
         Metadata meta = new Metadata();
         // TODO JON, add your security metadata here.
+        
+        BundleDescriptor bd = KernelUtil.loadBundleDescriptor(bundleId);
 
         String s[] = Helpers.splitIpPort(hostIpPort);
         String bhost_ip = s[0];
@@ -229,6 +263,8 @@ public class StubImpl implements Stub {
         invoke_request_body = invoke_request_body + KernelUtil.getMetadataAndBDString(KernelUtil.getBDString(remoteCallEncoding), meta);
         String invokerMessage = invoke_request_header + invoke_request_body;
         new SenderImpl().sendMessage(bhost_ip, new Integer(bhost_port.trim()), invokerMessage, true);
+        
+        bd.setTotalUse(bd.getTotalUse() + 1);
     }
 
 	public void upgradeAuthorisation(int bid) {
@@ -249,4 +285,5 @@ public class StubImpl implements Stub {
         String message = "UPGRADE-ACCESS-LEVEL-" + Initialiser.local_address.getHostAddress();
         new SenderImpl().sendMessage(ip, port, message,  true);
 	}
+	
 }
