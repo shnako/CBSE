@@ -7,7 +7,9 @@
 package mcom.wire.impl;
 
 import mcom.console.Display;
+import mcom.init.Initialiser;
 import mcom.kernel.impl.RemoteMComInvocation;
+import mcom.kernel.processor.BundleDescriptor;
 import mcom.kernel.util.KernelUtil;
 import mcom.kernel.util.Metadata;
 import mcom.wire.Receiver;
@@ -121,7 +123,18 @@ public class ReceiverImpl implements Receiver {
                         System.out.println(hostAddress+" is now an authorized user");
                         send("Authorization granted", out);
                         
-                    }                   
+                    }else if (r_message.contains("UPDATE-USAGE-COUNTER-")){
+                            String[] s1 = r_message.split("UPDATE-USAGE-COUNTER-");
+                            int bundleId = new Integer(s1[1].trim());
+
+                           /* for (BundleDescriptor bundle : Initialiser.bundleDescriptors){
+                                if (bundle.getBundleId() == bundleId){
+                                    bundle.setUsageCounter(bundle.getUsageCounter() + 1);
+                                }
+                            }*/
+                            BundleDescriptor bundle = KernelUtil.loadBundleDescriptor(bundleId);
+                            bundle.setUsageCounter(bundle.getUsageCounter() + 1);
+                        }
                         
                         else if (r_message.contains("INVOKEREQUESTHEADER-")) { //invocation server
                             String de[] = r_message.split("INVOKEREQUESTHEADER-FROM-");

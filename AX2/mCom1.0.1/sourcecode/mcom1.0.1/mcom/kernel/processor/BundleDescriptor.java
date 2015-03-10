@@ -4,7 +4,7 @@ package mcom.kernel.processor;
  */
 
 import StateAnnotations.mStateType;
-import com.sun.java.swing.plaf.gtk.GTKConstants;
+//import com.sun.java.swing.plaf.gtk.GTKConstants;
 import mcom.bundle.Contract;
 import mcom.bundle.util.bMethod;
 import mcom.kernel.util.KernelUtil;
@@ -31,6 +31,7 @@ public class BundleDescriptor implements Serializable {
     private String bundleName;
     private int bundleId;
     private Access accessLevel = Access.STANDARD;
+    private int usageCounter = 0;
     private int port;
     private InetAddress address;
 
@@ -146,6 +147,14 @@ public class BundleDescriptor implements Serializable {
 		this.accessLevel = accessLevel;
 	}
 
+    public int getUsageCounter(){
+        return usageCounter;
+    }
+
+    public void setUsageCounter(int usageCounter){
+        this.usageCounter = usageCounter;
+    }
+
     protected String getPortAsString() {
         return "" + getPort();
     }
@@ -212,6 +221,10 @@ public class BundleDescriptor implements Serializable {
             Element xbundleAccessLevel = doc.createElement("AccessLevel");
             xbundleAccessLevel.appendChild(doc.createTextNode("" + getAccessLevel()));
             rootElement.appendChild(xbundleAccessLevel);
+
+            Element xbundleUsageCounter = doc.createElement("UsageCounter");
+            xbundleUsageCounter.appendChild(doc.createTextNode("" + getUsageCounter()));
+            rootElement.appendChild(xbundleUsageCounter);
 
             Element xhostAddress = doc.createElement("HostAddress");
             if (getAddressAsString() != null) {

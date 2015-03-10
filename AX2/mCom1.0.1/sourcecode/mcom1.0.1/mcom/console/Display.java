@@ -55,6 +55,7 @@ public class Display {
         commands.put("adv%<bundleId>", "advertise specified bundleId on known Registers");
         commands.put("unadv%<bundleId>", "stop advertising specified bundleId on known Registers");
         commands.put("ladv", "List all adverts in this Register");
+        commands.put("run%<contractName>", "automate running of contract - highest ranking bundle is used");
         commands.put("invoke", "A remote invocation of a specified  bundle contract");
         commands.put("authorize", "upgrade user access");
         commands.put("auth%<bundleId>", "upgrade user access");
@@ -113,6 +114,8 @@ public class Display {
                     } else {
                         System.err.println("NaN");
                     }
+                }else if (operation.equals("run")){
+                    new StubImpl().run(value);
                 }
             }
         } else if (command.equals("drs")) {

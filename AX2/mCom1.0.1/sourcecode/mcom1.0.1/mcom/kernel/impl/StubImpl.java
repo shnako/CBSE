@@ -12,17 +12,16 @@ import mcom.kernel.processor.BundleDescriptor;
 import mcom.kernel.processor.BundleDescriptorFactory;
 import mcom.kernel.util.KernelUtil;
 import mcom.kernel.util.Metadata;
+import mcom.wire.Sender;
 import mcom.wire.impl.ReceiverImpl;
 import mcom.wire.impl.SenderImpl;
 import mcom.wire.util.*;
 
 import org.w3c.dom.Document;
+import org.w3c.dom.NodeList;
 
 import java.net.MalformedURLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
 public class StubImpl implements Stub {
 
@@ -109,12 +108,112 @@ public class StubImpl implements Stub {
         RemoteLookupService.doRemoteLookup();
     }
 
+    public void run(String contractName){
+        Map<String, String> rLookup = RemoteLookupService.getLookupResults();
+        List<Map.Entry<String, String>> rankings = new ArrayList<Map.Entry<String, String>>(rLookup.size());
+
+        for (Map.Entry<String, String> entry : rLookup.entrySet()){
+            String bundle = entry.getValue();
+            Document bd_doc = KernelUtil.decodeTextToXml(bundle.trim());
+            int bundleId = KernelUtil.retrieveBundleId(bd_doc);
+
+            if (hasContract(bd_doc, contractName)){
+                rankings.add(entry);
+            }
+        }
+
+        Collections.sort(rankings, new Comparator<Map.Entry<String, String>>(){
+
+            @Override
+            public int compare(Map.Entry<String, String> e1, Map.Entry<String, String> e2) {
+                Document e1Bundle = KernelUtil.decodeTextToXml(e1.getValue().trim());
+                Document e2Bundle = KernelUtil.decodeTextToXml(e2.getValue().trim());
+
+                int e1Usage = Integer.parseInt(e1Bundle.getElementById("UsageCounter").getNodeValue());
+                int e2Usage = Integer.parseInt(e2Bundle.getElementById("UsageCounter").getNodeValue());
+
+                return Integer.compare(e1Usage, e2Usage);
+            }
+        });
+
+        if (!rankings.isEmpty()) {
+            Map.Entry<String, String> highestRank = rankings.get(0);
+            Document bundle = KernelUtil.decodeTextToXml(highestRank.getValue().trim());
+            HashMap<String, String> parameters = getParameters(bundle, contractName);
+
+            if (parameters != null) {
+                sendRemoteInvocation(KernelUtil.retrieveBundleId(bundle), contractName, parameters, highestRank.getKey());
+
+            }
+        }
+        else{
+            System.out.println("Contract \"" + contractName + "\" not available");
+        }
+    }
+
+    public boolean hasContract(Document bd_doc, String contractName){
+        for (String contract : KernelUtil.retrieveContractNames(bd_doc)){
+            if (contract.equals(contractName)){
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private HashMap<String, String> getParameters(Document bd_doc, String contractName){
+        HashMap<String, String> parameters = new HashMap<String, String>(); //parameter name:value
+        HashMap<Object, Object> evparameters = KernelUtil.retrieveParameters(bd_doc, contractName);
+
+        for (Object o : evparameters.entrySet()) {
+            Map.Entry evpairs = (Map.Entry) o;
+            String p_name = (String) evpairs.getKey();
+            //String p_value = (String)evpairs.getValue();
+
+            System.out.println("Input parameter value of type:" + p_name);
+            String p1 = Display.scanner.nextLine();
+
+            if (p1 != null && p1.trim().length() > 0) {
+                p1 = p1.trim();
+
+                if (p_name.contains("String")) {
+                    parameters.put(p_name, p1);
+                } else if (p_name.contains("Float") || p_name.contains("float")) {
+                    if (Display.isNumeric(p1)) {
+                        parameters.put(p_name, p1);
+                    } else {
+                        System.err.println("invalid parameter type");
+                        return null;
+                    }
+                } else if (p_name.contains("Integer") || p_name.contains("int")) {
+                    if (Display.isNumeric(p1)) {
+                        parameters.put(p_name, p1);
+                    } else {
+                        System.err.println("invalid parameter type");
+                        return null;
+                    }
+                } else if (p_name.contains("Double") || p_name.contains("double")) {
+                    if (Display.isNumeric(p1)) {
+                        parameters.put(p_name, p1);
+                    } else {
+                        System.err.println("invalid parameter type");
+                        return null;
+                    }
+                }
+            } else {
+                System.err.println("invalid parameter type");
+                return null;
+            }
+        }
+
+        return parameters;
+    }
+
     @SuppressWarnings("rawtypes")
     public void invoke() {
         //Invoke a specific contract from the lookup list
         int bundleId;
         String contractName;
-        HashMap<String, String> parameters = new HashMap<String, String>(); //parameter name:value
 
         System.out.println("Input BundleID:");
         String bid = Display.scanner.nextLine();
@@ -155,47 +254,10 @@ public class StubImpl implements Stub {
                             cname_exist = true;
                             System.err.println("NOTE: This version of mCom only takes String or primitive parameter types");
                             //BUG FIX:mCom does not handle polymorphism (more than one contract with same contractName but different parameters)
-                            HashMap<Object, Object> evparameters = KernelUtil.retrieveParameters(bd_doc, contractName);
 
-                            for (Object o : evparameters.entrySet()) {
-                                Map.Entry evpairs = (Map.Entry) o;
-                                String p_name = (String) evpairs.getKey();
-                                //String p_value = (String)evpairs.getValue();
-
-                                System.out.println("Input parameter value of type:" + p_name);
-                                String p1 = Display.scanner.nextLine();
-
-                                if (p1 != null && p1.trim().length() > 0) {
-                                    p1 = p1.trim();
-
-                                    if (p_name.contains("String")) {
-                                        parameters.put(p_name, p1);
-                                    } else if (p_name.contains("Float") || p_name.contains("float")) {
-                                        if (Display.isNumeric(p1)) {
-                                            parameters.put(p_name, p1);
-                                        } else {
-                                            System.err.println("invalid parameter type");
-                                            return;
-                                        }
-                                    } else if (p_name.contains("Integer") || p_name.contains("int")) {
-                                        if (Display.isNumeric(p1)) {
-                                            parameters.put(p_name, p1);
-                                        } else {
-                                            System.err.println("invalid parameter type");
-                                            return;
-                                        }
-                                    } else if (p_name.contains("Double") || p_name.contains("double")) {
-                                        if (Display.isNumeric(p1)) {
-                                            parameters.put(p_name, p1);
-                                        } else {
-                                            System.err.println("invalid parameter type");
-                                            return;
-                                        }
-                                    }
-                                } else {
-                                    System.err.println("invalid parameter type");
-                                    return;
-                                }
+                            HashMap<String, String> parameters = getParameters(bd_doc, contractName);
+                            if (parameters == null){
+                                return;
                             }
                             sendRemoteInvocation(bundleId, contractName, parameters, header);
 
@@ -228,7 +290,11 @@ public class StubImpl implements Stub {
         Document remoteCallEncoding = KernelUtil.encodeRemoteCallAsxml(bhost_ip, new Integer(bhost_port.trim()), bundleId, contractName, parameters);
         invoke_request_body = invoke_request_body + KernelUtil.getMetadataAndBDString(KernelUtil.getBDString(remoteCallEncoding), meta);
         String invokerMessage = invoke_request_header + invoke_request_body;
-        new SenderImpl().sendMessage(bhost_ip, new Integer(bhost_port.trim()), invokerMessage, true);
+
+        Sender sender = new SenderImpl();
+        sender.sendMessage(bhost_ip, new Integer(bhost_port.trim()), invokerMessage, true);
+        sender.sendMessage(bhost_ip, new Integer(bhost_port.trim()), "UPDATE-USAGE-COUNTER-" + bundleId, true);
+
     }
 
 	public void upgradeAuthorisation(int bid) {

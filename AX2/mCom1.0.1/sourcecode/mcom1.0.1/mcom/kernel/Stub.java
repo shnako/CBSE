@@ -11,5 +11,7 @@ public interface Stub {
 
     public void localLookup();
 
+    public void run(String contractName);
+
     public void invoke();
 }
