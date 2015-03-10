@@ -30,6 +30,10 @@ public class ReceiverImpl implements Receiver {
         Thread server_thread = new Thread(new ReceiverImpl().new ReceiverRunner());
         server_thread.start();
     }
+    
+    private void authoriseUser(String hostAddress) {
+    	
+    }
 
     class ReceiverRunner implements Runnable {
 
@@ -109,7 +113,17 @@ public class ReceiverImpl implements Receiver {
                             System.out.println("Lookup response:");
                             System.out.println("ContractHost: " + header.trim());
                             System.out.println(body.trim());
-                        } else if (r_message.contains("INVOKEREQUESTHEADER-")) { //invocation server
+                        
+                    } else if (r_message.contains("UPGRADE-ACCESS-LEVEL-")) {
+                        String[] s1 = r_message.split("UPGRADE-ACCESS-LEVEL-");
+                        String hostAddress = s1[1].trim();            
+                        authoriseUser(hostAddress);         
+                        System.out.println(hostAddress+" is now an authorized user");
+                        send("Authorization granted", out);
+                        
+                    }                   
+                        
+                        else if (r_message.contains("INVOKEREQUESTHEADER-")) { //invocation server
                             String de[] = r_message.split("INVOKEREQUESTHEADER-FROM-");
                             String d1 = de[1];
                             String d2[] = d1.split("-TO-");

@@ -57,6 +57,7 @@ public class Display {
         commands.put("ladv", "List all adverts in this Register");
         commands.put("invoke", "A remote invocation of a specified  bundle contract");
         commands.put("authorize", "upgrade user access");
+        commands.put("auth%<bundleId>", "upgrade user access");
         commands.put("end", "terminate");
     }
 
@@ -99,7 +100,13 @@ public class Display {
                         new StubImpl().advertise(new Integer(value), false);
                     } else {
                         System.err.println("NaN");
-                    }
+                    }}
+                    else if (operation.equals("auth")) {
+                        if (isNumeric(value)) {
+                            new StubImpl().upgradeAuthorisation(new Integer(value));
+                        } else {
+                            System.err.println("NaN");
+                        }
                 }else if (operation.equals("undeploy")) {
                     if (isNumeric(value)) {
                         new StubImpl().undeploy(new Integer(value));

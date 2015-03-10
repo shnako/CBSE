@@ -35,9 +35,6 @@ public class Initialiser {
 
     public static BundleDescriptor[] bundleDescriptors;
     
-    // list of ip addresses allowed to access SUPER methods?
-    // or maybe a hashmap of ip addresses and what methods they can access?
-    private static ArrayList<String> accessList;
     
     public static void main(String args[]) {
         try {
@@ -45,7 +42,6 @@ public class Initialiser {
             createBundleDirectory();
             bundleDescriptors = new BundleDescriptor[0];
             startReceiver();
-            setAccessList(new ArrayList<String>());
             
             new Display();
             } catch (UnknownHostException e) {
@@ -147,13 +143,5 @@ public class Initialiser {
         bd_temp[i] = bd;
         bundleDescriptors = bd_temp;
     }
-
-	public static ArrayList<String> getAccessList() {
-		return accessList;
-	}
-
-	public static void setAccessList(ArrayList<String> accessList) {
-		Initialiser.accessList = accessList;
-	}
 
 }

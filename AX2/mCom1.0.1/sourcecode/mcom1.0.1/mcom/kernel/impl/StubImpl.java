@@ -109,10 +109,6 @@ public class StubImpl implements Stub {
         RemoteLookupService.doRemoteLookup();
     }
 
-    public boolean checkAccess(String bid){
-    	return Initialiser.getAccessList().isEmpty(); 	
-    }
-    
     @SuppressWarnings("rawtypes")
     public void invoke() {
         //Invoke a specific contract from the lookup list
@@ -127,11 +123,6 @@ public class StubImpl implements Stub {
             return;
         }
         
-        if(!checkAccess(bid)){
-            System.err.println("You do not have access permission");
-            // insert option to request access
-            return;
-        }
         bundleId = new Integer(bid.trim());
 
         //verify bundleId from
@@ -240,5 +231,22 @@ public class StubImpl implements Stub {
         new SenderImpl().sendMessage(bhost_ip, new Integer(bhost_port.trim()), invokerMessage, true);
     }
 
-
+	public void upgradeAuthorisation(int bid) {
+		
+		BundleDescriptor bd = KernelUtil.loadBundleDescriptor(bid);
+        String ip;
+        int port;
+        String host = bd.getAddress().getHostAddress();
+        try {
+            String[] addressComponents = Helpers.splitIpPort(host);
+            ip = addressComponents[0];
+            port = Integer.parseInt(addressComponents[1]);
+        } catch (Exception ex) {
+            System.err.println("Invalid host address!");
+            return;
+        }
+        // Build message to send.
+        String message = "UPGRADE-ACCESS-LEVEL-" + Initialiser.local_address.getHostAddress();
+        new SenderImpl().sendMessage(ip, port, message,  true);
+	}
 }
