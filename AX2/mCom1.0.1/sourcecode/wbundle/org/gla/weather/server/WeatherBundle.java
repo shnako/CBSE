@@ -17,7 +17,7 @@ import java.net.MalformedURLException;
 
 @mController
 @mEntity
-@mState(stateType = mStateType.STATELESS)
+@mState(stateType = mStateType.PERSISTANT)
 public class WeatherBundle {
     @mEntityContract(description = "Any city.", contractType = ContractType.GET)
     @mControllerInit

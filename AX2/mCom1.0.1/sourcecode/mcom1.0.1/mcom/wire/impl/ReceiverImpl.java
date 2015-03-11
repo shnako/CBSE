@@ -134,6 +134,7 @@ public class ReceiverImpl implements Receiver {
                             }*/
                             BundleDescriptor bundle = KernelUtil.loadBundleDescriptor(bundleId);
                             bundle.setUsageCounter(bundle.getUsageCounter() + 1);
+                            KernelUtil.storeBundleDescriptor(bundle);
                         }
                         
                         else if (r_message.contains("INVOKEREQUESTHEADER-")) { //invocation server

@@ -185,6 +185,9 @@ public class KernelUtil {
                     mStateType stateType = mStateType.valueOf(doc.getElementsByTagName("StateType").item(0).getTextContent());
                     bd.setStateType(stateType);
 
+                    int usageCounter = new Integer(doc.getElementsByTagName("UsageCounter").item(0).getTextContent());
+                    bd.setUsageCounter(usageCounter);
+
                     String sbundleControllerInit = doc.getElementsByTagName("BundleControllerInit").item(0).getTextContent();
                     bMethod bundleControllerInit = getbControllerInit(bundleController, sbundleControllerInit);
                     bd.setBundleControllerInit(bundleControllerInit);
@@ -270,6 +273,9 @@ public class KernelUtil {
 
                 mStateType stateType = mStateType.valueOf(doc.getElementsByTagName("StateType").item(0).getTextContent());
                 bd.setStateType(stateType);
+
+                int usageCounter = new Integer(doc.getElementsByTagName("UsageCounter").item(0).getTextContent());
+                bd.setUsageCounter(usageCounter);
 
                 NodeList nList = doc.getElementsByTagName("Contracts");
                 for (int temp = 0; temp < nList.getLength(); temp++) {
