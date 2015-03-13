@@ -40,7 +40,7 @@ public class StubImpl implements Stub {
         StateManager stateManager = StateManager.getStateManager();
 
         BundleDescriptorFactory.removeBundleDescriptor(bundleId);
-        stateManager.removeInstanceFromMemory(bundleId);
+        stateManager.removeInstanceFromMemoryAndDisk(bundleId);
         System.out.println("bundle undeployment completed");
     }
 
