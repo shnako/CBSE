@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.HashMap;
 
 public class BundleInstanceState implements Serializable {
+    private static final long serialVersionUID = 1L;
     private int bundleId;
     private int callCount;
     private HashMap<String, Serializable> customBundleData;
