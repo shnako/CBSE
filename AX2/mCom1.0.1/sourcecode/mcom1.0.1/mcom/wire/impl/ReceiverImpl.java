@@ -10,6 +10,7 @@ import mcom.console.Display;
 import mcom.init.Initialiser;
 import mcom.kernel.impl.RemoteMComInvocation;
 import mcom.kernel.processor.BundleDescriptor;
+import mcom.kernel.processor.BundleDescriptorFactory;
 import mcom.kernel.util.KernelUtil;
 import mcom.kernel.util.Metadata;
 import mcom.wire.Receiver;
@@ -82,6 +83,9 @@ public class ReceiverImpl implements Receiver {
                             res[1] = KernelUtil.stripMetadataFromString(res[1]);
 
                             String body = res[1];
+                            String bodySplit = body.split("<BundleId>")[1].split("</BundleId>")[0];
+
+                            int bundleId = new Integer(bodySplit);
 
                             String[] res1 = part0.split("ADVERTHEADER-");
                             String header = res1[1];
@@ -90,6 +94,7 @@ public class ReceiverImpl implements Receiver {
                                 RegistrarService.addAdvert(header, body);
                             } else if (meta.getMetadata("advertised").equals("false")) {
                                 RegistrarService.removeAdvert(header);
+                                BundleDescriptorFactory.removeBundleDescriptor(bundleId);
                             }
 
                             send(Helpers.getStringRepresentationOfIpPort("" + clientSocket.getInetAddress(), clientSocket.getPort()) + " ack", out);

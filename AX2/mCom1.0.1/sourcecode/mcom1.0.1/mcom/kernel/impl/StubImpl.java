@@ -11,6 +11,7 @@ import mcom.kernel.processor.BundleDescriptor;
 import mcom.kernel.processor.BundleDescriptorFactory;
 import mcom.kernel.util.KernelUtil;
 import mcom.kernel.util.Metadata;
+import mcom.kernel.util.StateManager;
 import mcom.wire.Sender;
 import mcom.wire.impl.ReceiverImpl;
 import mcom.wire.impl.SenderImpl;
@@ -36,7 +37,10 @@ public class StubImpl implements Stub {
     }
 
     public void undeploy(int bundleId) {
+        StateManager stateManager = StateManager.getStateManager();
+
         BundleDescriptorFactory.removeBundleDescriptor(bundleId);
+        stateManager.removeInstanceFromMemory(bundleId);
         System.out.println("bundle undeployment completed");
     }
 
