@@ -39,6 +39,7 @@ public class BundleInstance {
         return instance;
     }
 
+
     public void persist() throws IllegalStateException {
         if (stateType != mStateType.PERSISTANT) {
             throw new IllegalStateException("Cannot persist a " + stateType + " bundle. It must be " + mStateType.PERSISTANT + "!");
@@ -73,10 +74,11 @@ public class BundleInstance {
         }
     }
 
+
     public static BundleInstance loadPersistentInstance(int bundleId, mStateType stateType, Object instance) {
         File instanceFile = new File(getBundlePersistentFilePath(bundleId));
         if (!instanceFile.exists()) {
-            return null;
+            return  null;
         }
 
         BundleInstance bundleInstance = new BundleInstance(bundleId, stateType, instance);
