@@ -56,7 +56,21 @@ public class BundleInstance {
         } catch (Exception ex) {
             System.err.println("Could not persist instance: " + ex.getMessage());
         }
+    }
 
+    public void removeStateFromDisk() throws IllegalStateException {
+        if (stateType != mStateType.PERSISTANT) {
+            throw new IllegalStateException("Cannot remove from disk a " + stateType + " bundle. It must be " + mStateType.PERSISTANT + "!");
+        }
+
+        try {
+            File file = new File(getBundlePersistentFilePath(bundleInstanceState.getBundleId()));
+            if (!file.delete()) {
+                throw new IOException("could not delete file!");
+            }
+        } catch (Exception ex) {
+            System.err.println("Could not remove instance " + getBundleId() + " from disk: " + ex.getMessage());
+        }
     }
 
     public static BundleInstance loadPersistentInstance(int bundleId, mStateType stateType, Object instance) {
