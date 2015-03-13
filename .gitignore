@@ -1,6 +1,7 @@
 *.class
 /bin/
 /out/
+out
 
 # Eclipse and IntelliJ specifics
 .classpath
@@ -9,6 +10,7 @@
 .idea/
 .metadata/
 *.iml
+*.xml
 *.MF
 
 .recommenders/

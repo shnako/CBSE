@@ -7,7 +7,6 @@ package mcom.kernel.impl;
 import mcom.console.Display;
 import mcom.init.Initialiser;
 import mcom.kernel.Stub;
-import mcom.kernel.processor.Access;
 import mcom.kernel.processor.BundleDescriptor;
 import mcom.kernel.processor.BundleDescriptorFactory;
 import mcom.kernel.util.KernelUtil;
@@ -15,10 +14,10 @@ import mcom.kernel.util.Metadata;
 import mcom.wire.Sender;
 import mcom.wire.impl.ReceiverImpl;
 import mcom.wire.impl.SenderImpl;
-import mcom.wire.util.*;
-
+import mcom.wire.util.DynamicRegistrarDiscovery;
+import mcom.wire.util.Helpers;
+import mcom.wire.util.RemoteLookupService;
 import org.w3c.dom.Document;
-import org.w3c.dom.NodeList;
 
 import java.net.MalformedURLException;
 import java.util.*;
@@ -92,7 +91,7 @@ public class StubImpl implements Stub {
 
     public void localLookup() {
         BundleDescriptor[] bds = KernelUtil.loadBundleDescriptors();
-        System.out.println("No bundles: " + bds.length);
+        System.out.println("Number of bundles: " + bds.length);
         for (int i = 0; i < bds.length; i++) {
             Initialiser.addBundleDescriptor(bds[i]);
             int m = i + 1;
