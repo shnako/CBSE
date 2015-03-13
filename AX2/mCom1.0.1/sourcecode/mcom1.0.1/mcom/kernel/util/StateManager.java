@@ -40,15 +40,9 @@ public final class StateManager {
                 if (bundleInstance != null) {
                     StateManager.getStateManager().addInstance(bundleInstance);
                 }
-                else {
-                    Object instance = bundleController.newInstance();
-                    bundleInstance = new BundleInstance(bundleId, stateType, instance);
-                    bundleInstance.persist();
-                    StateManager.getStateManager().addInstance(bundleInstance);
-                }
             }
             // Try to create a new stateful instance.
-            if (bundleInstance == null && stateType == mStateType.STATEFUL) {
+            if (bundleInstance == null && (stateType == mStateType.STATEFUL || stateType == mStateType.PERSISTANT)) {
                 Object instance = bundleController.newInstance();
                 bundleInstance = new BundleInstance(bundleId, stateType, instance);
                 StateManager.getStateManager().addInstance(bundleInstance);
